@@ -102,4 +102,47 @@ class AuthRepository {
     await prefs.remove('auth_token');
     await prefs.remove('auth_user');
   }
+
+  Future<bool> forgotPassword(String email) async {
+    final response = await authService.forgotPassword(email);
+    final body = jsonDecode(response.body);
+    if (response.statusCode == 200 && body['success'] == true) {
+      return true;
+    } else {
+      final msg = body['message'] ?? 'Gagal mengirim email pemulihan sandi.';
+      throw Exception(msg);
+    }
+  }
+
+  Future<bool> verifyOtp(String email, String otp) async {
+    final response = await authService.verifyOtp(email, otp);
+    final body = jsonDecode(response.body);
+    if (response.statusCode == 200 && body['success'] == true) {
+      return true;
+    } else {
+      final msg = body['message'] ?? 'Kode verifikasi tidak valid.';
+      throw Exception(msg);
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    final response = await authService.resetPassword(
+      email: email,
+      otp: otp,
+      password: password,
+      confirmPassword: confirmPassword,
+    );
+    final body = jsonDecode(response.body);
+    if (response.statusCode == 200 && body['success'] == true) {
+      return true;
+    } else {
+      final msg = body['message'] ?? 'Gagal mengganti kata sandi.';
+      throw Exception(msg);
+    }
+  }
 }

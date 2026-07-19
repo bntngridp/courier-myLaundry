@@ -66,4 +66,46 @@ class AuthService {
       },
     );
   }
+
+  Future<http.Response> forgotPassword(String email) async {
+    final url = Uri.parse('$baseUrl/auth/forgot-password');
+    return await _client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+      }),
+    );
+  }
+
+  Future<http.Response> verifyOtp(String email, String otp) async {
+    final url = Uri.parse('$baseUrl/auth/verify-otp');
+    return await _client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'otp': otp,
+      }),
+    );
+  }
+
+  Future<http.Response> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    final url = Uri.parse('$baseUrl/auth/reset-password');
+    return await _client.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'otp': otp,
+        'password': password,
+        'confirm_password': confirmPassword,
+      }),
+    );
+  }
 }

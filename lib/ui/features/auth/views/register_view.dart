@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/auth_view_model.dart';
 import 'register_success_view.dart';
+import 'terms_conditions_view.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -292,8 +293,9 @@ class _RegisterViewState extends State<RegisterView> {
                   padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: GestureDetector(
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Syarat & Ketentuan berlaku.')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const TermsConditionsView()),
                       );
                     },
                     child: const Text.rich(
