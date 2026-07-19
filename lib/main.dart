@@ -1,7 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'data/services/auth_service.dart';
+import 'data/repositories/auth_repository.dart';
+import 'ui/features/auth/view_models/auth_view_model.dart';
+import 'ui/features/auth/views/login_view.dart';
 
-void main() {
-  runApp(const CourierApp());
+void main() async {
+  // Ensure Flutter bindings are initialized before calling SharedPreferences
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final authService = AuthService();
+  final authRepository = AuthRepository(authService: authService);
+  
+  // Initialize repository (loading stored local session credentials)
+  await authRepository.init();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<AuthService>.value(value: authService),
+        Provider<AuthRepository>.value(value: authRepository),
+        ChangeNotifierProvider<AuthViewModel>(
+          create: (_) => AuthViewModel(authRepository: authRepository),
+        ),
+      ],
+      child: const CourierApp(),
+    ),
+  );
 }
 
 class CourierApp extends StatelessWidget {
@@ -22,80 +47,7 @@ class CourierApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: const Color(0xFFF8F9FA),
       ),
-      home: const CourierHome(),
-    );
-  }
-}
-
-class CourierHome extends StatelessWidget {
-  const CourierHome({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'myLaundry Courier',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        backgroundColor: const Color(0xFF0B1739),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Icon(
-                Icons.local_shipping_outlined,
-                size: 80,
-                color: Color(0xFF0007B0),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Selamat Datang, Kurir! 🦅',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0B1739),
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Aplikasi kurir siap dikembangkan untuk membantu pengantaran dan penjemputan pesanan laundry.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 48),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Fitur login/masuk akan segera hadir! ✨'),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.login),
-                label: const Text('Masuk Ke Akun Kurir'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0007B0),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      home: const LoginView(),
     );
   }
 }
