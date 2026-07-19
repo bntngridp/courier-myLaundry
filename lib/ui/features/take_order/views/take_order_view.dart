@@ -10,6 +10,11 @@ class TakeOrderView extends StatefulWidget {
 }
 
 class _TakeOrderViewState extends State<TakeOrderView> {
+  // Step 4 local form states
+  String _selectedCategory = 'Cuci Lipat'; // 'Cuci Lipat', 'Cuci Satuan', 'Cuci Setrika'
+  String _selectedServiceType = 'Reguler'; // 'Reguler', 'Ngebut', 'Kilat' for kiloan, items for satuan
+  double _counterValue = 1.0;
+
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<TakeOrderViewModel>(context);
@@ -24,7 +29,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
   }
 
   PreferredSizeWidget? _buildAppBar(BuildContext context, TakeOrderViewModel viewModel) {
-    if (viewModel.currentStep == 5) return null; // No app bar for success screen
+    if (viewModel.currentStep == 6) return null; // No app bar for success screen
 
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -32,10 +37,14 @@ class _TakeOrderViewState extends State<TakeOrderView> {
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1739)),
         onPressed: () {
-          if (viewModel.currentStep == 1 || viewModel.currentStep == 2) {
-            viewModel.resetFlow();
+          if (viewModel.currentStep == 4) {
+            viewModel.goBackToOnTheWay();
+          } else {
+            if (viewModel.currentStep == 1 || viewModel.currentStep == 2) {
+              viewModel.resetFlow();
+            }
+            Navigator.pop(context);
           }
-          Navigator.pop(context);
         },
       ),
       title: Text(
@@ -67,6 +76,8 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                   onChanged: (val) {
                     viewModel.toggleAppActivity(val);
                   },
+                  activeThumbColor: const Color(0xFF4CAF50),
+                  activeTrackColor: const Color(0x334CAF50),
                 ),
               ],
             ),
@@ -86,6 +97,8 @@ class _TakeOrderViewState extends State<TakeOrderView> {
       case 3:
         return 'Perjalanan Penjemputan';
       case 4:
+        return 'Konfirmasi Pesanan';
+      case 5:
         return 'Pembayaran';
       default:
         return 'Ambil Pesanan';
@@ -103,8 +116,10 @@ class _TakeOrderViewState extends State<TakeOrderView> {
       case 3:
         return _buildStepOnTheWay(context, viewModel);
       case 4:
-        return _buildStepPayment(context, viewModel);
+        return _buildStepInputOrder(context, viewModel);
       case 5:
+        return _buildStepPayment(context, viewModel);
+      case 6:
         return _buildStepSuccess(context, viewModel);
       default:
         return _buildStepOff(context, viewModel);
@@ -264,7 +279,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
               itemCount: viewModel.availableOrders.length,
               itemBuilder: (context, index) {
                 final order = viewModel.availableOrders[index];
-                // Generate mock distances for visual fidelity
                 final mockDistances = ['2.5 km', '3.8 km', '4.2 km', '6.0 km'];
                 final distance = mockDistances[index % mockDistances.length];
 
@@ -278,7 +292,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                   ),
                   child: Row(
                     children: [
-                      // Distance badge
                       Container(
                         width: 58,
                         height: 58,
@@ -298,7 +311,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      // Details
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +335,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Terima Button
                       ElevatedButton(
                         onPressed: () => viewModel.acceptOrder(order),
                         style: ElevatedButton.styleFrom(
@@ -354,21 +365,18 @@ class _TakeOrderViewState extends State<TakeOrderView> {
     );
   }
 
-  // STEP 3: On The Way with mockup map and bottom actions card
+  // STEP 3: On The Way
   Widget _buildStepOnTheWay(BuildContext context, TakeOrderViewModel viewModel) {
     final order = viewModel.currentOrder;
     final address = order?.address;
 
     return Stack(
       children: [
-        // Map Mockup Painter
         Positioned.fill(
           child: CustomPaint(
             painter: _MockMapPainter(),
           ),
         ),
-        
-        // Custom Top Floating Address HUD
         Positioned(
           top: 16,
           left: 24,
@@ -428,8 +436,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
             ),
           ),
         ),
-
-        // Bottom HUD Card
         Positioned(
           bottom: 24,
           left: 24,
@@ -452,7 +458,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Estimate time
                 const Center(
                   child: Text.rich(
                     TextSpan(
@@ -471,10 +476,8 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
-                // Telah Sampai Button
                 ElevatedButton(
-                  onPressed: viewModel.isLoading ? null : () => viewModel.markArrived(),
+                  onPressed: () => viewModel.goToInputOrder(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0007B0),
                     padding: const EdgeInsets.symmetric(vertical: 18),
@@ -483,27 +486,16 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                     ),
                     elevation: 0,
                   ),
-                  child: viewModel.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Telah Sampai',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                  child: const Text(
+                    'Telah Sampai',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                
-                // Chat input and call button Row
                 Row(
                   children: [
                     Expanded(
@@ -518,7 +510,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                           children: [
                             const Expanded(
                               child: TextField(
-                                readOnly: true, // Mock input field
+                                readOnly: true,
                                 decoration: InputDecoration(
                                   hintText: 'Kirimkan pesan bisa diisi ya...',
                                   hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
@@ -535,7 +527,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // Phone Icon Button
                     Container(
                       width: 52,
                       height: 52,
@@ -558,7 +549,446 @@ class _TakeOrderViewState extends State<TakeOrderView> {
     );
   }
 
-  // STEP 4: Payment waiting state
+  // STEP 4: Input Pesanan (Konfirmasi Pesanan)
+  Widget _buildStepInputOrder(BuildContext context, TakeOrderViewModel viewModel) {
+    final categories = ['Cuci Lipat', 'Cuci Satuan', 'Cuci Setrika'];
+    final kiloanServiceTypes = ['Reguler', 'Ngebut', 'Kilat'];
+    final satuanServiceTypes = [
+      'Selimut', 'Bedcover', 'Sprei', 'Kemeja',
+      'Jas', 'Kebaya', 'Dress', 'Karpet Bulu',
+      'Boneka(S)', 'Boneka(L)'
+    ];
+
+    final isSatuan = _selectedCategory == 'Cuci Satuan';
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Layanan',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0B1739),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: categories.map((cat) {
+                        final isSelected = _selectedCategory == cat;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedCategory = cat;
+                                _selectedServiceType = cat == 'Cuci Satuan' ? 'Selimut' : 'Reguler';
+                                _counterValue = 1.0;
+                              });
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF0007B0) : const Color(0xFFE2E8F0),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  cat,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: isSelected ? Colors.white : Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    const Text(
+                      'Jenis Layanan',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0B1739),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    if (!isSatuan) ...[
+                      Row(
+                        children: kiloanServiceTypes.map((type) {
+                          final isSelected = _selectedServiceType == type;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedServiceType = type;
+                                });
+                              },
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? const Color(0xFF0007B0) : const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    type,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: isSelected ? Colors.white : Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ] else ...[
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: satuanServiceTypes.map((type) {
+                          final isSelected = _selectedServiceType == type;
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedServiceType = type;
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isSelected ? const Color(0xFF0007B0) : const Color(0xFFE2E8F0),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                type,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Colors.black54,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 20),
+
+                    Text(
+                      isSatuan ? 'Jumlah' : 'Berat',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0B1739),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                if (_counterValue > 1) {
+                                  setState(() {
+                                    _counterValue -= isSatuan ? 1.0 : 0.5;
+                                    if (_counterValue < 1) _counterValue = 1;
+                                  });
+                                }
+                              },
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: const Icon(Icons.remove, color: Colors.black54, size: 16),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              isSatuan
+                                  ? '${_counterValue.toInt()} pcs'
+                                  : '${_counterValue.toStringAsFixed(1).replaceAll('.0', '')} kg',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0B1739),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _counterValue += isSatuan ? 1.0 : 0.5;
+                                });
+                              },
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF0007B0),
+                                ),
+                                child: const Icon(Icons.add, color: Colors.white, size: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        ElevatedButton(
+                          onPressed: () {
+                            final rate = viewModel.getPriceRate(_selectedCategory, _selectedServiceType);
+                            final item = InputItem(
+                              category: _selectedCategory,
+                              serviceType: _selectedServiceType,
+                              value: _counterValue,
+                              price: rate,
+                            );
+                            viewModel.addItemToLocalList(item);
+                            
+                            setState(() {
+                              _counterValue = 1.0;
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0007B0),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Tambah',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              if (viewModel.inputItems.isNotEmpty) ...[
+                const Text(
+                  'Item Ditambahkan',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0B1739),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: viewModel.inputItems.length,
+                  itemBuilder: (context, index) {
+                    final item = viewModel.inputItems[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE6F0FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  item.category,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0007B0),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  item.serviceType,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                item.valueSuffix,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0B1739),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                constraints: const BoxConstraints(),
+                                padding: EdgeInsets.zero,
+                                icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent, size: 20),
+                                onPressed: () {
+                                  viewModel.removeItemFromLocalList(index);
+                                },
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+              ],
+              
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Total Estimasi',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          'Rp ${viewModel.localTotalPrice.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0B1739),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: (viewModel.inputItems.isEmpty || viewModel.isLoading)
+                            ? null
+                            : () async {
+                                final success = await viewModel.submitOrderDetails();
+                                if (success && context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Detail pesanan berhasil disimpan! 🦅✨'),
+                                      backgroundColor: Color(0xFF0007B0),
+                                    ),
+                                  );
+                                } else if (context.mounted && viewModel.errorMessage != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(viewModel.errorMessage!),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0007B0),
+                          disabledBackgroundColor: const Color(0xFFE2E8F0),
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: viewModel.isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Lanjut ke Pembayaran',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // STEP 5: Payment waiting state
   Widget _buildStepPayment(BuildContext context, TakeOrderViewModel viewModel) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
@@ -578,7 +1008,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Total Tagihan: Rp ${(viewModel.currentOrder?.totalPrice ?? 0).toInt()}',
+            'Total Tagihan: Rp ${(viewModel.currentOrder?.totalPrice ?? 0).toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 16,
@@ -632,7 +1062,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
     );
   }
 
-  // STEP 5: Payment success confirmation
+  // STEP 6: Payment success confirmation
   Widget _buildStepSuccess(BuildContext context, TakeOrderViewModel viewModel) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 36.0),
@@ -651,7 +1081,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
             ),
           ),
           const SizedBox(height: 48),
-          // Large Checkmark
           Center(
             child: Container(
               width: 120,
@@ -712,17 +1141,14 @@ class _MockMapPainter extends CustomPainter {
       ..color = const Color(0xFFE2E8F0)
       ..style = PaintingStyle.fill;
     
-    // Fill background (mock land)
     canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
 
-    // Paint mock streets
     final streetPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 24.0;
 
-    // Draw grid of mock streets
     canvas.drawLine(Offset(size.width * 0.2, 0), Offset(size.width * 0.2, size.height), streetPaint);
     canvas.drawLine(Offset(size.width * 0.5, 0), Offset(size.width * 0.5, size.height), streetPaint);
     canvas.drawLine(Offset(size.width * 0.8, 0), Offset(size.width * 0.8, size.height), streetPaint);
@@ -731,7 +1157,6 @@ class _MockMapPainter extends CustomPainter {
     canvas.drawLine(Offset(0, size.height * 0.6), Offset(size.width, size.height * 0.6), streetPaint);
     canvas.drawLine(Offset(0, size.height * 0.85), Offset(size.width, size.height * 0.85), streetPaint);
 
-    // Draw route path (blue line showing GPS direction)
     final routePaint = Paint()
       ..color = const Color(0xFF0007B0)
       ..style = PaintingStyle.stroke
@@ -739,27 +1164,24 @@ class _MockMapPainter extends CustomPainter {
       ..strokeWidth = 8.0;
 
     final path = Path()
-      ..moveTo(size.width * 0.2, size.height * 0.85) // Start pin
+      ..moveTo(size.width * 0.2, size.height * 0.85)
       ..lineTo(size.width * 0.2, size.height * 0.6)
       ..lineTo(size.width * 0.8, size.height * 0.6)
-      ..lineTo(size.width * 0.8, size.height * 0.25); // Target pin
+      ..lineTo(size.width * 0.8, size.height * 0.25);
     
     canvas.drawPath(path, routePaint);
 
-    // Draw Pins
     final startPinPaint = Paint()
-      ..color = const Color(0xFF4CAF50) // Green pin for Courier
+      ..color = const Color(0xFF4CAF50)
       ..style = PaintingStyle.fill;
 
     final endPinPaint = Paint()
-      ..color = Colors.red // Red pin for Customer
+      ..color = Colors.red
       ..style = PaintingStyle.fill;
 
-    // Courier Pin (Green)
     canvas.drawCircle(Offset(size.width * 0.2, size.height * 0.85), 14, startPinPaint);
     canvas.drawCircle(Offset(size.width * 0.2, size.height * 0.85), 6, Paint()..color = Colors.white);
 
-    // Customer Pin (Red)
     canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.25), 14, endPinPaint);
     canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.25), 6, Paint()..color = Colors.white);
   }

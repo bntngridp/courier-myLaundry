@@ -32,8 +32,20 @@ class OrderRepository {
     }
   }
 
-  Future<OrderModel> courierArrived(int orderId, String token) async {
-    final response = await orderService.courierArrived(orderId: orderId, token: token);
+  Future<OrderModel> courierArrived({
+    required int orderId,
+    required String token,
+    double? totalPrice,
+    double? weight,
+    int? quantity,
+  }) async {
+    final response = await orderService.courierArrived(
+      orderId: orderId,
+      token: token,
+      totalPrice: totalPrice,
+      weight: weight,
+      quantity: quantity,
+    );
     final body = jsonDecode(response.body);
 
     if (response.statusCode == 200 && body['success'] == true) {

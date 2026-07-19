@@ -45,17 +45,28 @@ class OrderService {
     );
   }
 
-  Future<http.Response> courierArrived({required int orderId, required String token}) async {
+  Future<http.Response> courierArrived({
+    required int orderId,
+    required String token,
+    double? totalPrice,
+    double? weight,
+    int? quantity,
+  }) async {
     final url = Uri.parse('$baseUrl/orders/courier-arrived');
+    final Map<String, dynamic> bodyMap = {
+      'order_id': orderId,
+    };
+    if (totalPrice != null) bodyMap['total_price'] = totalPrice;
+    if (weight != null) bodyMap['weight'] = weight;
+    if (quantity != null) bodyMap['quantity'] = quantity;
+
     return await _client.post(
       url,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({
-        'order_id': orderId,
-      }),
+      body: jsonEncode(bodyMap),
     );
   }
 

@@ -3,6 +3,29 @@ import '../../../../data/repositories/auth_repository.dart';
 import '../../../../data/repositories/order_repository.dart';
 import '../../../../domain/models/order.dart';
 
+class InputItem {
+  final String category; // "Cuci Lipat", "Cuci Satuan", "Cuci Setrika"
+  final String serviceType; // "Reguler", "Ngebut", "Kilat", "Selimut", "Bedcover", etc.
+  final double value; // weight in kg or count in pcs
+  final double price; // unit price
+
+  InputItem({
+    required this.category,
+    required this.serviceType,
+    required this.value,
+    required this.price,
+  });
+
+  double get totalPrice => price * value;
+
+  String get valueSuffix {
+    if (category == 'Cuci Satuan') {
+      return '${value.toInt()} pcs';
+    }
+    return '${value.toStringAsFixed(1).replaceAll('.0', '')} kg';
+  }
+}
+
 class TakeOrderViewModel extends ChangeNotifier {
   final AuthRepository authRepository;
   final OrderRepository orderRepository;
@@ -13,7 +36,9 @@ class TakeOrderViewModel extends ChangeNotifier {
   bool _isSearching = false;
   List<OrderModel> _availableOrders = [];
   OrderModel? _currentOrder;
-  int _currentStep = 0; // 0: Off, 1: Searching, 2: Found List, 3: On the Way, 4: Payment, 5: Success
+  int _currentStep = 0; // 0: Off, 1: Searching, 2: Found List, 3: On the Way, 4: Input Order, 5: Payment, 6: Success
+
+  List<InputItem> _inputItems = [];
 
   TakeOrderViewModel({
     required this.authRepository,
@@ -27,6 +52,15 @@ class TakeOrderViewModel extends ChangeNotifier {
   List<OrderModel> get availableOrders => _availableOrders;
   OrderModel? get currentOrder => _currentOrder;
   int get currentStep => _currentStep;
+  List<InputItem> get inputItems => _inputItems;
+
+  double get localTotalPrice {
+    double total = 0;
+    for (var item in _inputItems) {
+      total += item.totalPrice;
+    }
+    return total;
+  }
 
   void clearError() {
     _errorMessage = null;
@@ -39,6 +73,7 @@ class TakeOrderViewModel extends ChangeNotifier {
     _currentOrder = null;
     _currentStep = 0;
     _isAppActive = false;
+    _inputItems = [];
     notifyListeners();
   }
 
@@ -50,7 +85,7 @@ class TakeOrderViewModel extends ChangeNotifier {
     if (status == 'kurir on the way' || status == 'delivering') {
       _currentStep = 3; // On the way
     } else if (status == 'arrived - proses pembayaran') {
-      _currentStep = 4; // Waiting payment
+      _currentStep = 5; // Waiting payment
     } else {
       _currentStep = 3;
     }
@@ -126,7 +161,54 @@ class TakeOrderViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> markArrived() async {
+  void goToInputOrder() {
+    _currentStep = 4; // Input Order screen
+    _inputItems = [];
+    notifyListeners();
+  }
+
+  void goBackToOnTheWay() {
+    _currentStep = 3;
+    notifyListeners();
+  }
+
+  void addItemToLocalList(InputItem item) {
+    _inputItems.add(item);
+    notifyListeners();
+  }
+
+  void removeItemFromLocalList(int index) {
+    if (index >= 0 && index < _inputItems.length) {
+      _inputItems.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  double getPriceRate(String category, String serviceType) {
+    if (category == 'Cuci Lipat') {
+      if (serviceType == 'Reguler') return 7000;
+      if (serviceType == 'Ngebut') return 10000;
+      if (serviceType == 'Kilat') return 15000;
+    } else if (category == 'Cuci Setrika') {
+      if (serviceType == 'Reguler') return 8000;
+      if (serviceType == 'Ngebut') return 9000;
+      if (serviceType == 'Kilat') return 12000;
+    } else if (category == 'Cuci Satuan') {
+      if (serviceType == 'Selimut') return 15000;
+      if (serviceType == 'Bedcover') return 25000;
+      if (serviceType == 'Sprei') return 15000;
+      if (serviceType == 'Kemeja') return 8000;
+      if (serviceType == 'Jas') return 20000;
+      if (serviceType == 'Kebaya') return 18000;
+      if (serviceType == 'Dress') return 15000;
+      if (serviceType == 'Karpet Bulu') return 30000;
+      if (serviceType == 'Boneka(S)') return 10000;
+      if (serviceType == 'Boneka(L)') return 20000;
+    }
+    return 0;
+  }
+
+  Future<bool> submitOrderDetails() async {
     final token = authRepository.token;
     if (token == null || _currentOrder == null) return false;
 
@@ -134,10 +216,28 @@ class TakeOrderViewModel extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
+    // Accumulate total weight and total quantity to submit to backend
+    double totalWeight = 0;
+    int totalQuantity = 0;
+
+    for (var item in _inputItems) {
+      if (item.category == 'Cuci Satuan') {
+        totalQuantity += item.value.toInt();
+      } else {
+        totalWeight += item.value;
+      }
+    }
+
     try {
-      final updatedOrder = await orderRepository.courierArrived(_currentOrder!.id, token);
+      final updatedOrder = await orderRepository.courierArrived(
+        orderId: _currentOrder!.id,
+        token: token,
+        totalPrice: localTotalPrice,
+        weight: totalWeight,
+        quantity: totalQuantity,
+      );
       _currentOrder = updatedOrder;
-      _currentStep = 4; // Waiting Payment screen
+      _currentStep = 5; // Waiting Payment screen
       _isLoading = false;
       notifyListeners();
       return true;
@@ -160,7 +260,7 @@ class TakeOrderViewModel extends ChangeNotifier {
     try {
       final updatedOrder = await orderRepository.acceptCashPayment(_currentOrder!.id, token);
       _currentOrder = updatedOrder;
-      _currentStep = 5; // Payment Success screen
+      _currentStep = 6; // Payment Success screen
       _isLoading = false;
       notifyListeners();
       return true;
