@@ -5,6 +5,8 @@ import '../../take_order/view_models/take_order_view_model.dart';
 import '../../take_order/views/take_order_view.dart';
 import '../view_models/home_view_model.dart';
 import '../../profile/views/profile_view.dart';
+import '../../delivery/view_models/delivery_view_model.dart';
+import '../../delivery/views/delivery_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -141,52 +143,106 @@ class _HomeViewState extends State<HomeView> {
                         const SizedBox(width: 16),
                         // Antar Pesanan
                         Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE2E8F0),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.outbox, color: Colors.black45, size: 20),
+                          child: GestureDetector(
+                            onTap: () async {
+                              final token = authViewModel.authRepository.token;
+                              if (token == null) return;
+
+                              showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) => const Center(
+                                  child: CircularProgressIndicator(color: Color(0xFF0007B0)),
                                 ),
-                                const SizedBox(width: 12),
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Antar',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0B1739),
-                                      ),
+                              );
+
+                              try {
+                                final orders = await takeOrderViewModel.orderRepository.getOrders(
+                                  available: false,
+                                  token: token,
+                                );
+                                if (context.mounted) {
+                                  Navigator.of(context, rootNavigator: true).pop();
+                                }
+
+                                final deliverableOrder = orders.firstWhere(
+                                  (o) => o.status.toLowerCase() == 'done' || o.status.toLowerCase() == 'delivering',
+                                  orElse: () => throw Exception('Tidak ada pesanan yang siap diantarkan kembali.'),
+                                );
+
+                                if (context.mounted) {
+                                  final deliveryViewModel = Provider.of<DeliveryViewModel>(context, listen: false);
+                                  await deliveryViewModel.startDeliveryFlow(deliverableOrder);
+                                  
+                                  if (context.mounted) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => const DeliveryView()),
+                                    ).then((_) {
+                                      homeViewModel.checkActiveOrder();
+                                    });
+                                  }
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+                                  
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(e.toString().replaceAll('Exception: ', '')),
+                                      backgroundColor: const Color(0xFF0B1739),
                                     ),
-                                    Text(
-                                      'Pesanan',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.black38,
-                                      ),
+                                  );
+                                }
+                              }
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFFE2E8F0)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.02),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  )
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFE6F0FF),
+                                      shape: BoxShape.circle,
                                     ),
-                                  ],
-                                )
-                              ],
+                                    child: const Icon(Icons.outbox, color: Color(0xFF0007B0), size: 20),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Antar',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0B1739),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Pesanan',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.black38,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
                             ),
                           ),
                         ),

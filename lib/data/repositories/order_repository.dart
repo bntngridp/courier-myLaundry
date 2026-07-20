@@ -67,4 +67,28 @@ class OrderRepository {
       throw Exception(msg);
     }
   }
+
+  Future<OrderModel> startDelivery(int orderId, String token) async {
+    final response = await orderService.startDelivery(orderId, token);
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && body['success'] == true) {
+      return OrderModel.fromJson(body['data']);
+    } else {
+      final msg = body['message'] ?? 'Gagal memulai pengantaran kembali';
+      throw Exception(msg);
+    }
+  }
+
+  Future<bool> updateOrderStatus(int orderId, String status, String token) async {
+    final response = await orderService.updateOrderStatus(orderId, status, token);
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      final msg = body['message'] ?? 'Gagal memperbaharui status pesanan';
+      throw Exception(msg);
+    }
+  }
 }

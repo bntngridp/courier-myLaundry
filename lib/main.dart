@@ -7,6 +7,7 @@ import 'data/repositories/order_repository.dart';
 import 'ui/features/auth/view_models/auth_view_model.dart';
 import 'ui/features/home/view_models/home_view_model.dart';
 import 'ui/features/take_order/view_models/take_order_view_model.dart';
+import 'ui/features/delivery/view_models/delivery_view_model.dart';
 import 'ui/features/auth/views/login_view.dart';
 import 'ui/features/home/views/home_view.dart';
 
@@ -41,6 +42,12 @@ void main() async {
         ),
         ChangeNotifierProvider<TakeOrderViewModel>(
           create: (_) => TakeOrderViewModel(
+            authRepository: authRepository,
+            orderRepository: orderRepository,
+          ),
+        ),
+        ChangeNotifierProvider<DeliveryViewModel>(
+          create: (_) => DeliveryViewModel(
             authRepository: authRepository,
             orderRepository: orderRepository,
           ),

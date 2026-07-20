@@ -83,4 +83,33 @@ class OrderService {
       }),
     );
   }
+
+  Future<http.Response> startDelivery(int orderId, String token) async {
+    final url = Uri.parse('$baseUrl/orders/order-delivery');
+    return await _client.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'order_id': orderId,
+      }),
+    );
+  }
+
+  Future<http.Response> updateOrderStatus(int orderId, String status, String token) async {
+    final url = Uri.parse('$baseUrl/orders/status');
+    return await _client.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'order_id': orderId,
+        'status': status,
+      }),
+    );
+  }
 }
