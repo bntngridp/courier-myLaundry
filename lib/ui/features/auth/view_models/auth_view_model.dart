@@ -166,4 +166,33 @@ class AuthViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updateProfile({
+    required String username,
+    required String email,
+    String? password,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      if (username.isEmpty || email.isEmpty) {
+        throw Exception('Nama dan Email tidak boleh kosong.');
+      }
+      await authRepository.updateCourier(
+        username: username,
+        email: email,
+        password: password,
+      );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

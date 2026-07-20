@@ -108,4 +108,29 @@ class AuthService {
       }),
     );
   }
+
+  Future<http.Response> updateCourier({
+    required int id,
+    required String username,
+    required String email,
+    String? password,
+    required String token,
+  }) async {
+    final url = Uri.parse('$baseUrl/couriers/$id');
+    final body = <String, dynamic>{
+      'username': username,
+      'email': email,
+    };
+    if (password != null && password.isNotEmpty) {
+      body['password'] = password;
+    }
+    return await _client.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(body),
+    );
+  }
 }

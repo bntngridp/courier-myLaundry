@@ -145,4 +145,36 @@ class AuthRepository {
       throw Exception(msg);
     }
   }
+
+  Future<User?> updateCourier({
+    required String username,
+    required String email,
+    String? password,
+  }) async {
+    if (_token == null || _currentUser == null) {
+      throw Exception('Sesi masuk tidak ditemukan.');
+    }
+
+    final response = await authService.updateCourier(
+      id: _currentUser!.id,
+      username: username,
+      email: email,
+      password: password,
+      token: _token!,
+    );
+    final body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      final updatedUser = await getMe();
+      if (updatedUser != null) {
+        _currentUser = updatedUser;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_user', jsonEncode(updatedUser.toJson()));
+      }
+      return _currentUser;
+    } else {
+      final msg = body['message'] ?? 'Gagal memperbaharui profil kurir.';
+      throw Exception(msg);
+    }
+  }
 }
