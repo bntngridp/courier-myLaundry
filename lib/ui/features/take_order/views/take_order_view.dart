@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/take_order_view_model.dart';
+import 'chat_view.dart';
+import 'call_view.dart';
 
 class TakeOrderView extends StatefulWidget {
   const TakeOrderView({super.key});
@@ -499,44 +501,62 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            const Expanded(
-                              child: TextField(
-                                readOnly: true,
-                                decoration: InputDecoration(
-                                  hintText: 'Kirimkan pesan bisa diisi ya...',
-                                  hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
-                                  border: InputBorder.none,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const ChatView()),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          height: 52,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            children: [
+                              const Expanded(
+                                child: TextField(
+                                  enabled: false,
+                                  decoration: InputDecoration(
+                                    hintText: 'Kirimkan pesan bisa diisi ya...',
+                                    hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
+                                    border: InputBorder.none,
+                                  ),
                                 ),
                               ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.send, color: Color(0xFF0007B0), size: 18),
-                              onPressed: () {},
-                            ),
-                          ],
+                              IconButton(
+                                icon: const Icon(Icons.send, color: Color(0xFF0007B0), size: 18),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const ChatView()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      width: 52,
-                      height: 52,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFE6F0FF),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.phone, color: Color(0xFF0007B0), size: 22),
-                        onPressed: () {},
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const CallView()),
+                        );
+                      },
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFE6F0FF),
+                        ),
+                        child: const Icon(Icons.phone, color: Color(0xFF0007B0), size: 22),
                       ),
                     ),
                   ],

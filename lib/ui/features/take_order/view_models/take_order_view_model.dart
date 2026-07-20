@@ -26,6 +26,18 @@ class InputItem {
   }
 }
 
+class ChatMessage {
+  final String text;
+  final bool isMe;
+  final String timestamp;
+
+  ChatMessage({
+    required this.text,
+    required this.isMe,
+    required this.timestamp,
+  });
+}
+
 class TakeOrderViewModel extends ChangeNotifier {
   final AuthRepository authRepository;
   final OrderRepository orderRepository;
@@ -40,6 +52,14 @@ class TakeOrderViewModel extends ChangeNotifier {
 
   List<InputItem> _inputItems = [];
 
+  // Chat and Telephone Feature states
+  final List<ChatMessage> _chatMessages = [
+    ChatMessage(text: 'Mas udah dimana ya', isMe: false, timestamp: '10:36 am'),
+    ChatMessage(text: 'saya udah di depan kos ya', isMe: false, timestamp: '10:36 am'),
+  ];
+  bool _isSpeakerOn = false;
+  bool _isMuted = false;
+
   TakeOrderViewModel({
     required this.authRepository,
     required this.orderRepository,
@@ -53,6 +73,10 @@ class TakeOrderViewModel extends ChangeNotifier {
   OrderModel? get currentOrder => _currentOrder;
   int get currentStep => _currentStep;
   List<InputItem> get inputItems => _inputItems;
+
+  List<ChatMessage> get chatMessages => _chatMessages;
+  bool get isSpeakerOn => _isSpeakerOn;
+  bool get isMuted => _isMuted;
 
   double get localTotalPrice {
     double total = 0;
@@ -270,5 +294,45 @@ class TakeOrderViewModel extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // Chat & Phone Actions
+  void sendChatMessage(String text) {
+    if (text.trim().isEmpty) return;
+    
+    final now = DateTime.now();
+    final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+    final ampm = now.hour >= 12 ? 'pm' : 'am';
+    final minute = now.minute.toString().padLeft(2, '0');
+    final timestamp = '$hour:$minute $ampm';
+
+    _chatMessages.add(ChatMessage(text: text, isMe: true, timestamp: timestamp));
+    notifyListeners();
+
+    // Trigger mock reply after 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      final nowReply = DateTime.now();
+      final hourR = nowReply.hour > 12 ? nowReply.hour - 12 : (nowReply.hour == 0 ? 12 : nowReply.hour);
+      final ampmR = nowReply.hour >= 12 ? 'pm' : 'am';
+      final minuteR = nowReply.minute.toString().padLeft(2, '0');
+      final timestampR = '$hourR:$minuteR $ampmR';
+      
+      _chatMessages.add(ChatMessage(
+        text: 'Oke mas, ditunggu ya! 👍',
+        isMe: false,
+        timestamp: timestampR,
+      ));
+      notifyListeners();
+    });
+  }
+
+  void toggleSpeaker() {
+    _isSpeakerOn = !_isSpeakerOn;
+    notifyListeners();
+  }
+
+  void toggleMute() {
+    _isMuted = !_isMuted;
+    notifyListeners();
   }
 }
