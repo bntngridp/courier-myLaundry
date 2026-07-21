@@ -65,9 +65,9 @@ class _RegisterViewState extends State<RegisterView> {
         elevation: 0,
         automaticallyImplyLeading: false,
         centerTitle: true,
-        title: const Text(
-          'Daftar Akun',
-          style: TextStyle(
+        title: Text(
+          viewModel.translate('Daftar Akun'),
+          style: const TextStyle(
             color: Color(0xFF0B1739),
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -155,7 +155,7 @@ class _RegisterViewState extends State<RegisterView> {
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'Nama Pengguna',
+                          hintText: viewModel.translate('Nama Pengguna'),
                           hintStyle: const TextStyle(color: Colors.black38, fontWeight: FontWeight.normal, fontSize: 13),
                           prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF0007B0), size: 20),
                           filled: true,
@@ -228,7 +228,7 @@ class _RegisterViewState extends State<RegisterView> {
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'Kata Sandi Baru',
+                          hintText: viewModel.translate('Kata Sandi Baru'),
                           hintStyle: const TextStyle(color: Colors.black38, fontWeight: FontWeight.normal, fontSize: 13),
                           prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0007B0), size: 20),
                           suffixIcon: IconButton(
@@ -277,7 +277,7 @@ class _RegisterViewState extends State<RegisterView> {
                         textInputAction: TextInputAction.done,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'Kode Khusus Karyawan',
+                          hintText: viewModel.translate('Kode Khusus Karyawan'),
                           hintStyle: const TextStyle(color: Colors.black38, fontWeight: FontWeight.normal, fontSize: 13),
                           prefixIcon: const Icon(Icons.badge_outlined, color: Color(0xFF0007B0), size: 20),
                           filled: true,
@@ -327,9 +327,9 @@ class _RegisterViewState extends State<RegisterView> {
                                   strokeWidth: 2,
                                 ),
                               )
-                            : const Text(
-                                'Daftar',
-                                style: TextStyle(
+                            : Text(
+                                viewModel.translate('Daftar'),
+                                style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -370,14 +370,14 @@ class _RegisterViewState extends State<RegisterView> {
                       // Already have an account link
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: const Text.rich(
+                        child: Text.rich(
                           TextSpan(
-                            text: 'Sudah punya akun? ',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            text: viewModel.translate('Sudah punya akun? '),
+                            style: const TextStyle(fontSize: 12, color: Colors.black54),
                             children: [
                               TextSpan(
-                                text: 'Masuk disini',
-                                style: TextStyle(
+                                text: viewModel.translate('Masuk disini'),
+                                style: const TextStyle(
                                   color: Color(0xFF0007B0),
                                   fontWeight: FontWeight.bold,
                                   decoration: TextDecoration.underline,
