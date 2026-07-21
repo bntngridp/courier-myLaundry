@@ -148,7 +148,8 @@ class ResetPasswordSuccessView extends StatelessWidget {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0007B0),
-                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),

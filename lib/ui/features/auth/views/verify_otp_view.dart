@@ -294,8 +294,9 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                       onPressed: viewModel.isLoading ? null : _handleVerify,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF0007B0),
+                        foregroundColor: Colors.white,
                         disabledBackgroundColor: const Color(0xFF0007B0).withValues(alpha: 0.6),
-                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
