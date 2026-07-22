@@ -12,8 +12,8 @@ class VerifyOtpView extends StatefulWidget {
 }
 
 class _VerifyOtpViewState extends State<VerifyOtpView> {
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
   void dispose() {
@@ -32,10 +32,10 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
 
   void _handleVerify() async {
     final otp = _getOtpCode();
-    if (otp.length != 4) {
+    if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Silakan masukkan 4 digit kode verifikasi.'),
+          content: Text('Silakan masukkan 6 digit kode verifikasi.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -92,13 +92,11 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1739)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Kode Verifikasi',
-          style: TextStyle(
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        title: Text(
+          viewModel.translate('Kode Verifikasi'),
+          style: const TextStyle(
             color: Color(0xFF0B1739),
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -186,7 +184,7 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                     // Title info with dynamic email highlighted in blue
                     Text.rich(
                       TextSpan(
-                        text: 'Masukkan 4 digit kode yang dikirimkan ke\n',
+                        text: viewModel.translate('Masukkan 6 digit kode yang dikirimkan ke\n'),
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
@@ -206,16 +204,17 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 36),
-                    // Row of 4 OTP boxes
+                    // Row of 6 OTP boxes
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(4, (index) {
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(6, (index) {
                         return Container(
-                          width: 64,
-                          height: 64,
+                          width: 46,
+                          height: 54,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: const Color(0xFFE2E8F0),
                               width: 1.5,
@@ -234,7 +233,7 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                             keyboardType: TextInputType.number,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF0007B0),
                             ),
@@ -248,7 +247,7 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                             ),
                             onChanged: (value) {
                               if (value.isNotEmpty) {
-                                if (index < 3) {
+                                if (index < 5) {
                                   _focusNodes[index + 1].requestFocus();
                                 } else {
                                   _focusNodes[index].unfocus();

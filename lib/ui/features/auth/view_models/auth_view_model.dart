@@ -202,8 +202,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (otp.length != 4) {
-        throw Exception('Kode verifikasi harus 4 digit.');
+      if (otp.length != 6) {
+        throw Exception('Kode verifikasi harus 6 digit.');
       }
       if (_emailForReset == null) {
         throw Exception('Sesi pemulihan tidak valid.');
