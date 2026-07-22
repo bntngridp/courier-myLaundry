@@ -338,6 +338,59 @@ class _RegisterViewState extends State<RegisterView> {
                       ),
                       const SizedBox(height: 24),
 
+                      // Or register with Google label
+                      Center(
+                        child: Text(
+                          viewModel.translate('Atau daftar dengan'),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.black38,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Google Icon Button
+                      Center(
+                        child: GestureDetector(
+                          onTap: () {
+                            _usernameController.text = 'Courier Demo';
+                            _emailController.text = 'courier_demo@mylaundry.com';
+                            _passwordController.text = 'password123';
+                            _employeeCodeController.text = 'COURIER2024';
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
+                            ),
+                            child: Center(
+                              child: Image.asset(
+                                'assets/images/google.png',
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (context, error, stackTrace) => const Icon(
+                                  Icons.g_mobiledata,
+                                  color: Colors.blue,
+                                  size: 28,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
                       // Terms and Conditions text
                       GestureDetector(
                         onTap: () {
