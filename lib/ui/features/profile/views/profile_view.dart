@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/view_models/auth_view_model.dart';
+import '../../auth/views/login_view.dart';
 import '../../auth/views/terms_conditions_view.dart';
 import 'edit_profile_view.dart';
 import 'order_history_view.dart';
@@ -349,6 +350,13 @@ class _ProfileViewState extends State<ProfileView> {
                   onPressed: () async {
                     Navigator.pop(context);
                     await authViewModel.logout();
+                    if (context.mounted) {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginView()),
+                        (route) => false,
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFEF4444),
