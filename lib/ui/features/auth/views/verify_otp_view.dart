@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../view_models/auth_view_model.dart';
 import 'reset_password_view.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 
 class VerifyOtpView extends StatefulWidget {
   const VerifyOtpView({super.key});
@@ -33,12 +34,7 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
   void _handleVerify() async {
     final otp = _getOtpCode();
     if (otp.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Silakan masukkan 6 digit kode verifikasi.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppSnackBar.showError(context, 'Silakan masukkan 6 digit kode verifikasi');
       return;
     }
 
@@ -59,19 +55,9 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
 
     final success = await viewModel.sendOtp(viewModel.emailForReset!);
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kode OTP baru telah dikirim ke email Anda.'),
-          backgroundColor: Color(0xFF0007B0),
-        ),
-      );
+      AppSnackBar.showSuccess(context, 'Kode OTP baru telah dikirim ke email Anda');
     } else if (mounted && viewModel.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(viewModel.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppSnackBar.showError(context, viewModel.errorMessage!);
     }
   }
 

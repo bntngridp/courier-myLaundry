@@ -211,15 +211,16 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           const SizedBox(height: 24),
 
-          // Sub-menu Grid (Keamanan, Bahasa, Notifikasi, Ketentuan, Keluar)
+          // Sub-menu Grid (Keamanan, Bahasa, Ketentuan, Keluar)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+              crossAxisCount: 2,
+              crossAxisSpacing: 14,
+              mainAxisSpacing: 14,
+              childAspectRatio: 1.4,
               children: [
                 _buildGridItem(
                   context,
@@ -240,19 +241,6 @@ class _ProfileViewState extends State<ProfileView> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const LanguageView()),
-                    );
-                  },
-                ),
-                _buildGridItem(
-                  context,
-                  icon: Icons.notifications_none,
-                  label: 'Notifikasi',
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Notifikasi aktif! 🔔'),
-                        backgroundColor: Color(0xFF0007B0),
-                      ),
                     );
                   },
                 ),
@@ -295,8 +283,8 @@ class _ProfileViewState extends State<ProfileView> {
           elevation: 0,
           backgroundColor: Colors.transparent,
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 380),
-            padding: const EdgeInsets.all(24.0),
+            constraints: const BoxConstraints(maxWidth: 430),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 28.0),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(28),
@@ -335,20 +323,20 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 const SizedBox(height: 20),
 
-                const Text(
-                  'Konfirmasi Keluar',
+                Text(
+                  authViewModel.translate('Konfirmasi Keluar'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF0B1739),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Apakah kamu yakin ingin keluar dari akun Kurir?\nPastikan tidak ada tugas penjemputan aktif.',
+                Text(
+                  authViewModel.translate('Apakah kamu yakin ingin keluar dari akun Kurir?\nPastikan tidak ada tugas penjemputan aktif.'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF64748B),
                     height: 1.4,
@@ -364,29 +352,28 @@ class _ProfileViewState extends State<ProfileView> {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: Color(0xFFE2E8F0)),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
+                          side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: const Text(
-                          'Batal',
-                          style: TextStyle(
+                        child: Text(
+                          authViewModel.translate('Batal'),
+                          style: const TextStyle(
                             fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.bold,
                             color: Color(0xFF64748B),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 14),
 
                     // Ya, Keluar (Danger Solid Red)
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () async {
-                          Navigator.pop(context);
                           await authViewModel.logout();
                           if (context.mounted) {
                             Navigator.pushAndRemoveUntil(
@@ -399,15 +386,15 @@ class _ProfileViewState extends State<ProfileView> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFEF4444),
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: const Text(
-                          'Ya, Keluar',
-                          style: TextStyle(
+                        child: Text(
+                          authViewModel.translate('Ya, Keluar'),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -430,6 +417,7 @@ class _ProfileViewState extends State<ProfileView> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final authViewModel = Provider.of<AuthViewModel>(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -451,7 +439,7 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             const SizedBox(height: 8),
             Text(
-              label,
+              authViewModel.translate(label),
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,

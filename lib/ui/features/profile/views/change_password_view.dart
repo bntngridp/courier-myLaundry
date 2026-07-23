@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../auth/view_models/auth_view_model.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 
 class ChangePasswordView extends StatefulWidget {
   const ChangePasswordView({super.key});
@@ -205,21 +206,11 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                             );
                             if (success) {
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Kata sandi berhasil diperbaharui! 🔑✨'),
-                                    backgroundColor: Color(0xFF4CAF50),
-                                  ),
-                                );
+                                AppSnackBar.showSuccess(context, 'Kata sandi berhasil diperbarui');
                                 Navigator.pop(context);
                               }
                             } else if (context.mounted && authViewModel.errorMessage != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(authViewModel.errorMessage!),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              AppSnackBar.showError(context, authViewModel.errorMessage!);
                             }
                           }
                         },

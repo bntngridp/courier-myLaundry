@@ -4,6 +4,7 @@ import '../../auth/view_models/auth_view_model.dart';
 import '../../take_order/view_models/take_order_view_model.dart';
 import '../../take_order/views/take_order_view.dart';
 import '../view_models/home_view_model.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../../profile/views/profile_view.dart';
 import '../../delivery/view_models/delivery_view_model.dart';
 import '../../delivery/views/delivery_view.dart';
@@ -104,16 +105,16 @@ class _HomeViewState extends State<HomeView> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
-                                          'Selamat Bekerja,',
-                                          style: TextStyle(
+                                        Text(
+                                          authViewModel.translate('Selamat Bekerja,'),
+                                          style: const TextStyle(
                                             fontSize: 12,
                                             color: Colors.white70,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         Text(
-                                          '$courierName 🚚',
+                                          courierName,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
@@ -332,12 +333,7 @@ class _HomeViewState extends State<HomeView> {
                                 if (context.mounted) {
                                   Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
                                   
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(e.toString().replaceAll('Exception: ', '')),
-                                      backgroundColor: const Color(0xFF0B1739),
-                                    ),
-                                  );
+                                  AppSnackBar.showError(context, e.toString().replaceAll('Exception: ', ''));
                                 }
                               }
                             },

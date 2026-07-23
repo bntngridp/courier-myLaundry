@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../auth/view_models/auth_view_model.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -221,21 +222,11 @@ class _EditProfileViewState extends State<EditProfileView> {
                               final prefs = await SharedPreferences.getInstance();
                               await prefs.setString('courier_phone', _phoneController.text);
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Profil berhasil diperbaharui! 🦅✨'),
-                                    backgroundColor: Color(0xFF4CAF50),
-                                  ),
-                                );
+                                AppSnackBar.showSuccess(context, 'Profil berhasil diperbarui');
                                 Navigator.pop(context);
                               }
                             } else if (context.mounted && authViewModel.errorMessage != null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(authViewModel.errorMessage!),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
+                              AppSnackBar.showError(context, authViewModel.errorMessage!);
                             }
                           }
                         },

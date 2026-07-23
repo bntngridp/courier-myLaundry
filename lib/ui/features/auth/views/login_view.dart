@@ -4,6 +4,7 @@ import '../view_models/auth_view_model.dart';
 import 'register_view.dart';
 import 'forgot_password_view.dart';
 import '../../home/views/home_view.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -48,12 +49,7 @@ class _LoginViewState extends State<LoginView> {
       );
 
       if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login Berhasil! Selamat bekerja, Kurir! 🦅✨'),
-            backgroundColor: Color(0xFF0007B0),
-          ),
-        );
+        AppSnackBar.showSuccess(context, 'Login berhasil! Selamat bekerja, Kurir');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomeView()),

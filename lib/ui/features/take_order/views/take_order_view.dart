@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/take_order_view_model.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import 'chat_view.dart';
 import 'call_view.dart';
 
@@ -267,7 +268,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Yeyy Pesanan Ketemu 😄',
+            'Pesanan Ditemukan',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 20,
@@ -954,19 +955,9 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                             : () async {
                                 final success = await viewModel.submitOrderDetails();
                                 if (success && context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Detail pesanan berhasil disimpan! 🦅✨'),
-                                      backgroundColor: Color(0xFF0007B0),
-                                    ),
-                                  );
+                                  AppSnackBar.showSuccess(context, 'Detail pesanan berhasil disimpan');
                                 } else if (context.mounted && viewModel.errorMessage != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(viewModel.errorMessage!),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
+                                  AppSnackBar.showError(context, viewModel.errorMessage!);
                                 }
                               },
                         style: ElevatedButton.styleFrom(

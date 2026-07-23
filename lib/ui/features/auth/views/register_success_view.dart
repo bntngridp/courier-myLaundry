@@ -95,7 +95,7 @@ class RegisterSuccessView extends StatelessWidget {
                         border: Border.all(color: const Color(0xFFC7D2FE)),
                       ),
                       child: const Text(
-                        'PENDAFTARAN KURIR BERHASIL 🚚',
+                        'PENDAFTARAN KURIR BERHASIL',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
