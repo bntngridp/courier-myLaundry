@@ -130,54 +130,314 @@ class _TakeOrderViewState extends State<TakeOrderView> {
     }
   }
 
-   // STEP 0: App is OFF (modernized)
+   // STEP 0: App is OFF (modernized Duty Status Dashboard)
    Widget _buildStepOff(BuildContext context, TakeOrderViewModel viewModel) {
-     return Padding(
-       padding: const EdgeInsets.symmetric(horizontal: 32.0),
+     return SingleChildScrollView(
+       physics: const BouncingScrollPhysics(),
+       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
        child: Column(
-         mainAxisAlignment: MainAxisAlignment.center,
-         crossAxisAlignment: CrossAxisAlignment.center,
+         crossAxisAlignment: CrossAxisAlignment.stretch,
          children: [
-           // Modern icon emblem with subtle shadow
+           const SizedBox(height: 12),
+           // Main Duty Status Hero Card
            Container(
-             width: 140,
-             height: 140,
+             padding: const EdgeInsets.all(28.0),
              decoration: BoxDecoration(
-               shape: BoxShape.circle,
-               color: const Color(0xFFEAF4FF),
+               gradient: const LinearGradient(
+                 colors: [Color(0xFFFFFFFF), Color(0xFFF4F7FE)],
+                 begin: Alignment.topCenter,
+                 end: Alignment.bottomCenter,
+               ),
+               borderRadius: BorderRadius.circular(28),
                boxShadow: [
                  BoxShadow(
                    color: const Color(0xFF0007B0).withValues(alpha: 0.08),
-                   blurRadius: 28,
-                   offset: const Offset(0, 12),
-                 )
+                   blurRadius: 30,
+                   offset: const Offset(0, 10),
+                 ),
+               ],
+               border: Border.all(color: Colors.white, width: 2),
+             ),
+             child: Column(
+               children: [
+                 // Status Pill Badge
+                 Container(
+                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                   decoration: BoxDecoration(
+                     color: const Color(0xFFFFEBEE),
+                     borderRadius: BorderRadius.circular(30),
+                     border: Border.all(color: const Color(0xFFFFCDD2)),
+                   ),
+                   child: const Row(
+                     mainAxisSize: MainAxisSize.min,
+                     children: [
+                       Icon(Icons.circle, color: Color(0xFFE53935), size: 10),
+                       SizedBox(width: 8),
+                       Text(
+                         'OFFLINE • ISTIRAHAT',
+                         style: TextStyle(
+                           color: Color(0xFFC62828),
+                           fontWeight: FontWeight.w800,
+                           fontSize: 12,
+                           letterSpacing: 0.5,
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+                 const SizedBox(height: 28),
+
+                 // Interactive Glowing Power Switch Button
+                 GestureDetector(
+                   onTap: () => viewModel.toggleAppActivity(true),
+                   child: Container(
+                     width: 130,
+                     height: 130,
+                     decoration: BoxDecoration(
+                       shape: BoxShape.circle,
+                       color: Colors.white,
+                       boxShadow: [
+                         BoxShadow(
+                           color: const Color(0xFF0007B0).withValues(alpha: 0.12),
+                           blurRadius: 35,
+                           spreadRadius: 8,
+                         ),
+                         BoxShadow(
+                           color: const Color(0xFFE53935).withValues(alpha: 0.15),
+                           blurRadius: 20,
+                           spreadRadius: 2,
+                         ),
+                       ],
+                     ),
+                     child: Center(
+                       child: Container(
+                         width: 100,
+                         height: 100,
+                         decoration: BoxDecoration(
+                           shape: BoxShape.circle,
+                           gradient: const LinearGradient(
+                             colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
+                             begin: Alignment.topLeft,
+                             end: Alignment.bottomRight,
+                           ),
+                           boxShadow: [
+                             BoxShadow(
+                               color: Colors.black.withValues(alpha: 0.2),
+                               blurRadius: 12,
+                               offset: const Offset(0, 6),
+                             ),
+                           ],
+                         ),
+                         child: const Column(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             Icon(
+                               Icons.power_settings_new_rounded,
+                               size: 42,
+                               color: Color(0xFFFF5252),
+                             ),
+                             SizedBox(height: 4),
+                             Text(
+                               'MULAI',
+                               style: TextStyle(
+                                 color: Colors.white70,
+                                 fontWeight: FontWeight.bold,
+                                 fontSize: 11,
+                                 letterSpacing: 1,
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                     ),
+                   ),
+                 ),
+
+                 const SizedBox(height: 24),
+                 const Text(
+                   'Aktifkan Mode Bertugas',
+                   textAlign: TextAlign.center,
+                   style: TextStyle(
+                     fontSize: 20,
+                     fontWeight: FontWeight.w800,
+                     color: Color(0xFF0B1739),
+                   ),
+                 ),
+                 const SizedBox(height: 8),
+                 const Text(
+                   'Tekan tombol power atau switch di atas untuk mulai menerima order penjemputan terdekat.',
+                   textAlign: TextAlign.center,
+                   style: TextStyle(
+                     fontSize: 13,
+                     color: Color(0xFF64748B),
+                     height: 1.4,
+                   ),
+                 ),
+
+                 const SizedBox(height: 24),
+                 // Big Gradient Start Duty Button
+                 SizedBox(
+                   width: double.infinity,
+                   child: ElevatedButton(
+                     onPressed: () => viewModel.toggleAppActivity(true),
+                     style: ElevatedButton.styleFrom(
+                       padding: const EdgeInsets.symmetric(vertical: 16),
+                       backgroundColor: const Color(0xFF0007B0),
+                       foregroundColor: Colors.white,
+                       elevation: 4,
+                       shadowColor: const Color(0xFF0007B0).withValues(alpha: 0.4),
+                       shape: RoundedRectangleBorder(
+                         borderRadius: BorderRadius.circular(16),
+                       ),
+                     ),
+                     child: const Row(
+                       mainAxisAlignment: MainAxisAlignment.center,
+                       children: [
+                         Icon(Icons.bolt, color: Colors.amber, size: 20),
+                         SizedBox(width: 8),
+                         Text(
+                           'SIAP TERIMA PESANAN',
+                           style: TextStyle(
+                             fontWeight: FontWeight.w800,
+                             fontSize: 14,
+                             letterSpacing: 0.5,
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),
+                 ),
                ],
              ),
-             child: const Icon(
-               Icons.power_settings_new,
-               size: 60,
-               color: Color(0xFF0022CC),
+           ),
+
+           const SizedBox(height: 24),
+
+           // Performance Metrics Cards Section Title
+           const Text(
+             'Ringkasan Performa Hari Ini',
+             style: TextStyle(
+               fontSize: 16,
+               fontWeight: FontWeight.bold,
+               color: Color(0xFF0B1739),
              ),
            ),
-           const SizedBox(height: 40),
-           const Text(
-             'Aktifkan Aplikasimu',
-             textAlign: TextAlign.center,
-             style: TextStyle(
-               fontSize: 22,
-               fontWeight: FontWeight.w800,
-               color: Color(0xFF0B1739),
-               height: 1.3,
+           const SizedBox(height: 12),
+
+           Row(
+             children: [
+               Expanded(
+                 child: _buildMetricCard(
+                   icon: Icons.local_shipping_outlined,
+                   iconColor: const Color(0xFF0284C7),
+                   bgColor: const Color(0xFFE0F2FE),
+                   value: '12',
+                   label: 'Selesai',
+                 ),
+               ),
+               const SizedBox(width: 12),
+               Expanded(
+                 child: _buildMetricCard(
+                   icon: Icons.account_balance_wallet_outlined,
+                   iconColor: const Color(0xFF16A34A),
+                   bgColor: const Color(0xFFDCFCE7),
+                   value: 'Rp 150rb',
+                   label: 'Pendapatan',
+                 ),
+               ),
+               const SizedBox(width: 12),
+               Expanded(
+                 child: _buildMetricCard(
+                   icon: Icons.star_rounded,
+                   iconColor: const Color(0xFFD97706),
+                   bgColor: const Color(0xFFFEF3C7),
+                   value: '4.9',
+                   label: 'Rating',
+                 ),
+               ),
+             ],
+           ),
+
+           const SizedBox(height: 20),
+
+           // Quick Tips Notice Card
+           Container(
+             padding: const EdgeInsets.all(16),
+             decoration: BoxDecoration(
+               color: const Color(0xFFEFF6FF),
+               borderRadius: BorderRadius.circular(16),
+               border: Border.all(color: const Color(0xFFBFDBFE)),
              ),
+             child: const Row(
+               children: [
+                 Icon(Icons.lightbulb_outline_rounded, color: Color(0xFF2563EB), size: 24),
+                 SizedBox(width: 12),
+                 Expanded(
+                   child: Text(
+                     'Pastikan GPS dan koneksi internet selalu aktif agar lokasi terdeteksi akurat saat kurir bertugas.',
+                     style: TextStyle(
+                       fontSize: 12,
+                       color: Color(0xFF1E40AF),
+                       height: 1.4,
+                     ),
+                   ),
+                 ),
+               ],
+             ),
+           ),
+         ],
+       ),
+     );
+   }
+
+   // Metric Card Helper
+   Widget _buildMetricCard({
+     required IconData icon,
+     required Color iconColor,
+     required Color bgColor,
+     required String value,
+     required String label,
+   }) {
+     return Container(
+       padding: const EdgeInsets.all(16),
+       decoration: BoxDecoration(
+         color: Colors.white,
+         borderRadius: BorderRadius.circular(20),
+         border: Border.all(color: const Color(0xFFF1F5F9)),
+         boxShadow: [
+           BoxShadow(
+             color: Colors.black.withValues(alpha: 0.03),
+             blurRadius: 10,
+             offset: const Offset(0, 4),
+           ),
+         ],
+       ),
+       child: Column(
+         children: [
+           Container(
+             padding: const EdgeInsets.all(8),
+             decoration: BoxDecoration(
+               color: bgColor,
+               shape: BoxShape.circle,
+             ),
+             child: Icon(icon, color: iconColor, size: 20),
            ),
            const SizedBox(height: 10),
-           const Text(
-             'Buka mode aktif untuk menerima pesanan laundry dari pelanggan terdekat',
-             textAlign: TextAlign.center,
-             style: TextStyle(
-               fontSize: 14,
-               color: Colors.black45,
-               height: 1.5,
+           Text(
+             value,
+             style: const TextStyle(
+               fontSize: 16,
+               fontWeight: FontWeight.w800,
+               color: Color(0xFF0B1739),
+             ),
+           ),
+           const SizedBox(height: 2),
+           Text(
+             label,
+             style: const TextStyle(
+               fontSize: 11,
+               color: Color(0xFF64748B),
+               fontWeight: FontWeight.w500,
              ),
            ),
          ],
