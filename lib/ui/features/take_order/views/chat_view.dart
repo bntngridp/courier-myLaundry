@@ -59,12 +59,16 @@ class _ChatViewState extends State<ChatView> {
               height: 40,
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: NetworkImage(
-                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=120',
-                  ),
-                  fit: BoxFit.cover,
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0007B0), Color(0xFF2563EB)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                customerName.isNotEmpty ? customerName[0].toUpperCase() : 'C',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
             const SizedBox(width: 12),
