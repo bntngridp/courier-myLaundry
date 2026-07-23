@@ -193,6 +193,10 @@ class AuthRepository {
 
       final user = await getMe();
       if (user != null) {
+        if (user.role != 'courier') {
+          await logout();
+          throw Exception('Hanya akun kurir yang diperbolehkan masuk.');
+        }
         _currentUser = user;
         await prefs.setString('auth_user', jsonEncode(user.toJson()));
       }
