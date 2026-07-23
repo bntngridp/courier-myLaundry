@@ -7,6 +7,8 @@ import '../view_models/home_view_model.dart';
 import '../../profile/views/profile_view.dart';
 import '../../delivery/view_models/delivery_view_model.dart';
 import '../../delivery/views/delivery_view.dart';
+import '../../notification/views/notification_view.dart';
+import '../../notification/view_models/notification_view_model.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -23,6 +25,7 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<HomeViewModel>(context, listen: false).checkActiveOrder();
+      Provider.of<NotificationViewModel>(context, listen: false).fetchNotifications();
     });
   }
 
@@ -127,17 +130,51 @@ class _HomeViewState extends State<HomeView> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 22),
-                                onPressed: () {},
-                              ),
-                            ),
+                             Consumer<NotificationViewModel>(
+                               builder: (context, notifVm, child) {
+                                 return Container(
+                                   decoration: BoxDecoration(
+                                     color: Colors.white.withValues(alpha: 0.15),
+                                     shape: BoxShape.circle,
+                                     border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                                   ),
+                                   child: Stack(
+                                     clipBehavior: Clip.none,
+                                     children: [
+                                       IconButton(
+                                         icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 22),
+                                         onPressed: () {
+                                           Navigator.push(
+                                             context,
+                                             MaterialPageRoute(builder: (context) => const NotificationView()),
+                                           );
+                                         },
+                                       ),
+                                       if (notifVm.unreadCount > 0)
+                                         Positioned(
+                                           right: 6,
+                                           top: 6,
+                                           child: Container(
+                                             padding: const EdgeInsets.all(4),
+                                             decoration: const BoxDecoration(
+                                               color: Color(0xFFFF4757),
+                                               shape: BoxShape.circle,
+                                             ),
+                                             child: Text(
+                                               '${notifVm.unreadCount}',
+                                               style: const TextStyle(
+                                                 color: Colors.white,
+                                                 fontSize: 9,
+                                                 fontWeight: FontWeight.bold,
+                                               ),
+                                             ),
+                                           ),
+                                         ),
+                                     ],
+                                   ),
+                                 );
+                               },
+                             ),
                           ],
                         ),
                         const SizedBox(height: 24),

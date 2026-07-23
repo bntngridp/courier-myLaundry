@@ -12,6 +12,10 @@ import 'ui/features/delivery/view_models/delivery_view_model.dart';
 import 'ui/features/auth/views/login_view.dart';
 import 'ui/features/home/views/home_view.dart';
 
+import 'data/services/notification_service.dart';
+import 'data/repositories/notification_repository.dart';
+import 'ui/features/notification/view_models/notification_view_model.dart';
+
 void main() async {
   // Ensure Flutter bindings are initialized before calling SharedPreferences
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +25,9 @@ void main() async {
   
   final orderService = OrderService();
   final orderRepository = OrderRepository(orderService: orderService);
+
+  final notificationService = NotificationService();
+  final notificationRepository = NotificationRepository(notificationService: notificationService);
   
   // Initialize repository (loading stored local session credentials)
   await authRepository.init();
@@ -32,6 +39,8 @@ void main() async {
         Provider<OrderService>.value(value: orderService),
         Provider<AuthRepository>.value(value: authRepository),
         Provider<OrderRepository>.value(value: orderRepository),
+        Provider<NotificationService>.value(value: notificationService),
+        Provider<NotificationRepository>.value(value: notificationRepository),
         ChangeNotifierProvider<AuthViewModel>(
           create: (_) => AuthViewModel(authRepository: authRepository),
         ),
@@ -51,6 +60,12 @@ void main() async {
           create: (_) => DeliveryViewModel(
             authRepository: authRepository,
             orderRepository: orderRepository,
+          ),
+        ),
+        ChangeNotifierProvider<NotificationViewModel>(
+          create: (_) => NotificationViewModel(
+            notificationRepository: notificationRepository,
+            authRepository: authRepository,
           ),
         ),
       ],
