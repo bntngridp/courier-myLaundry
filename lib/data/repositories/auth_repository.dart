@@ -151,6 +151,7 @@ class AuthRepository {
   Future<User?> updateCourier({
     required String username,
     required String email,
+    String? oldPassword,
     String? password,
   }) async {
     if (_token == null || _currentUser == null) {
@@ -161,6 +162,7 @@ class AuthRepository {
       id: _currentUser!.id,
       username: username,
       email: email,
+      oldPassword: oldPassword,
       password: password,
       token: _token!,
     );

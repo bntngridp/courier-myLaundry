@@ -73,15 +73,15 @@ class _RegisterViewState extends State<RegisterView> {
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0007B0).withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: const Color(0xFF0007B0).withValues(alpha: 0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
                     )
                   ],
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: Colors.transparent),
                 ),
                 child: Form(
                   key: _formKey,
@@ -89,45 +89,51 @@ class _RegisterViewState extends State<RegisterView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Brand Logo (Splash welcome style)
+                      // Brand / Welcome block - modernized
                       Center(
                         child: Column(
                           children: [
-                            Image.asset(
-                              'assets/images/logo-nobg.png',
-                              height: 75,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                width: 75,
-                                height: 75,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFFE6F0FF),
-                                ),
-                                child: const Icon(
-                                  Icons.local_laundry_service,
-                                  size: 36,
-                                  color: Color(0xFF0007B0),
+                            Container(
+                              width: 88,
+                              height: 88,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFEAF4FF),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0007B0).withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 8),
+                                  )
+                                ],
+                              ),
+                              child: Center(
+                                child: Image.asset(
+                                  'assets/images/logo-nobg.png',
+                                  height: 40,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) => const Icon(
+                                    Icons.local_laundry_service,
+                                    size: 34,
+                                    color: Color(0xFF0022CC),
+                                  ),
                                 ),
                               ),
                             ),
                             const SizedBox(height: 12),
                             const Text(
-                              'myLaundry',
+                              'Gabung sebagai Kurir',
                               style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0007B0),
-                                letterSpacing: 0.5,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF0B1739),
                               ),
                             ),
+                            const SizedBox(height: 6),
                             const Text(
-                              'Pendaftaran Kurir',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black38,
-                              ),
+                              'Buat akun kurir untuk menerima pesanan dan tugas pengantaran',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13, color: Colors.black45),
                             ),
                           ],
                         ),

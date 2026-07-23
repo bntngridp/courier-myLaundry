@@ -162,6 +162,7 @@ class _ProfileViewState extends State<ProfileView> {
               // Circular 4-Item Row (Keamanan, Bahasa, Ketentuan, Keluar)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
+                crossAxisAlignment: CrossAxisAlignment.start, // align items by top to keep circles level
                 children: [
                   _buildGridItem(
                     context,
@@ -261,6 +262,7 @@ class _ProfileViewState extends State<ProfileView> {
       child: SizedBox(
         width: 76,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               width: 56,
@@ -283,6 +285,9 @@ class _ProfileViewState extends State<ProfileView> {
             Text(
               authViewModel.translate(label),
               textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
               style: const TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,

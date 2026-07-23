@@ -115,6 +115,7 @@ class AuthService {
     required int id,
     required String username,
     required String email,
+    String? oldPassword,
     String? password,
     required String token,
   }) async {
@@ -123,6 +124,9 @@ class AuthService {
       'username': username,
       'email': email,
     };
+    if (oldPassword != null && oldPassword.isNotEmpty) {
+      body['old_password'] = oldPassword;
+    }
     if (password != null && password.isNotEmpty) {
       body['password'] = password;
     }

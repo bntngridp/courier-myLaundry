@@ -322,6 +322,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<bool> updateProfile({
     required String username,
     required String email,
+    String? oldPassword,
     String? password,
   }) async {
     _isLoading = true;
@@ -335,6 +336,7 @@ class AuthViewModel extends ChangeNotifier {
       await authRepository.updateCourier(
         username: username,
         email: email,
+        oldPassword: oldPassword,
         password: password,
       );
       _isLoading = false;

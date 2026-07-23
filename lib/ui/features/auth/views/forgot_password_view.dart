@@ -70,15 +70,15 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF0007B0).withValues(alpha: 0.05),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      color: const Color(0xFF0007B0).withValues(alpha: 0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
                     )
                   ],
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                  border: Border.all(color: Colors.transparent),
                 ),
                 child: Form(
                   key: _formKey,
@@ -86,28 +86,36 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Brand Logo (Splash welcome style)
+                      // Brand / Welcome block - modernized
                       Center(
-                        child: Image.asset(
-                          'assets/images/logo-nobg.png',
-                          height: 75,
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 75,
-                            height: 75,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFE6F0FF),
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 84,
+                              height: 84,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFEAF4FF),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: const Color(0xFF0007B0).withValues(alpha: 0.04),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 8),
+                                  )
+                                ],
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.lock_reset,
+                                  size: 36,
+                                  color: Color(0xFF0022CC),
+                                ),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.lock_reset,
-                              size: 40,
-                              color: Color(0xFF0007B0),
-                            ),
-                          ),
+                            const SizedBox(height: 18),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
 
                       // Title
                       Text(

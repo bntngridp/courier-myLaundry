@@ -202,6 +202,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                             final success = await authViewModel.updateProfile(
                               username: user.username,
                               email: user.email,
+                              oldPassword: _oldPasswordController.text,
                               password: _newPasswordController.text,
                             );
                             if (success) {
