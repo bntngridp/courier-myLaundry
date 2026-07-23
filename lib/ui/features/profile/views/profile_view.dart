@@ -27,9 +27,11 @@ class _ProfileViewState extends State<ProfileView> {
 
   Future<void> _loadLocalPhone() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _phone = prefs.getString('courier_phone') ?? '+628123456789';
-    });
+    if (mounted) {
+      setState(() {
+        _phone = prefs.getString('courier_phone') ?? '+628123456789';
+      });
+    }
   }
 
   @override
@@ -37,237 +39,257 @@ class _ProfileViewState extends State<ProfileView> {
     final authViewModel = Provider.of<AuthViewModel>(context);
     final user = authViewModel.authRepository.currentUser;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header section
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                height: 180,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0007B0),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(36),
-                    bottomRight: Radius.circular(36),
-                  ),
-                ),
-                child: const SafeArea(
-                  child: Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 16.0),
-                      child: Text(
-                        'Profil',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // Profile Info Card
-              Positioned(
-                top: 110,
-                left: 24,
-                right: 24,
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // Profile Image
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: const Color(0xFFE2E8F0), width: 3),
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.username ?? 'Surwanto',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0B1739),
-                              ),
-                            ),
-                            Text(
-                              user?.email ?? 'surwanto@gmail.com',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.black38,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _phone,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF0007B0),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Edit Button
-                      GestureDetector(
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const EditProfileView()),
-                          );
-                          _loadLocalPhone();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF0007B0),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            'Edit Profil',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 100), // Spacing for the overlapping profile card
+    final String name = user?.username ?? 'Surwanto';
+    final String email = user?.email ?? 'surwanto@gmail.com';
 
-          // Riwayat Button (Folder History)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const OrderHistoryView()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 12),
+              Text(
+                authViewModel.translate('Profil'),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0B1739),
                 ),
-                child: const Row(
+              ),
+              const SizedBox(height: 24),
+
+              // Header Blue Card (Matching Customer Profile)
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0B1739), Color(0xFF0007B0)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
                   children: [
-                    Icon(Icons.folder_open, color: Color(0xFF0007B0), size: 24),
-                    SizedBox(width: 16),
-                    Text(
-                      'Riwayat',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0B1739),
+                    Row(
+                      children: [
+                        // Avatar image circle
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                            image: const DecorationImage(
+                              image: NetworkImage(
+                                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+                              ),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                name,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$email | $_phone',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Edit Profile Button
+                    ElevatedButton(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const EditProfileView()),
+                        );
+                        _loadLocalPhone();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.15),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 44),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        authViewModel.translate('Edit Profil'),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    Spacer(),
-                    Icon(Icons.arrow_forward_ios, color: Colors.black26, size: 16),
                   ],
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-          // Sub-menu Grid (Keamanan, Bahasa, Ketentuan, Keluar)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-              childAspectRatio: 1.4,
-              children: [
-                _buildGridItem(
-                  context,
-                  icon: Icons.security,
-                  label: 'Keamanan',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SecurityView()),
-                    );
-                  },
-                ),
-                _buildGridItem(
-                  context,
-                  icon: Icons.language,
-                  label: 'Bahasa',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LanguageView()),
-                    );
-                  },
-                ),
-                _buildGridItem(
-                  context,
-                  icon: Icons.description_outlined,
-                  label: 'Ketentuan',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const TermsConditionsView()),
-                    );
-                  },
-                ),
-                _buildGridItem(
-                  context,
-                  icon: Icons.logout,
-                  label: 'Keluar',
-                  onTap: () {
-                    _showLogoutDialog(context, authViewModel);
-                  },
-                ),
-              ],
-            ),
+              // Quick Button: Riwayat
+              _buildQuickButton(
+                context,
+                icon: Icons.assignment_outlined,
+                label: 'Riwayat',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OrderHistoryView()),
+                  );
+                },
+              ),
+              const SizedBox(height: 32),
+
+              // Circular 4-Item Row (Keamanan, Bahasa, Ketentuan, Keluar)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildGridItem(
+                    context,
+                    icon: Icons.security_outlined,
+                    label: 'Keamanan',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SecurityView()),
+                      );
+                    },
+                  ),
+                  _buildGridItem(
+                    context,
+                    icon: Icons.translate_outlined,
+                    label: 'Bahasa',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LanguageView()),
+                      );
+                    },
+                  ),
+                  _buildGridItem(
+                    context,
+                    icon: Icons.description_outlined,
+                    label: 'Ketentuan',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const TermsConditionsView()),
+                      );
+                    },
+                  ),
+                  _buildGridItem(
+                    context,
+                    icon: Icons.logout_outlined,
+                    label: 'Keluar',
+                    onTap: () {
+                      _showLogoutDialog(context, authViewModel);
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: 120), // Extra spacing for the bottom navigation bar
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickButton(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final authViewModel = Provider.of<AuthViewModel>(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: const Color(0xFF0007B0), size: 20),
+            const SizedBox(width: 10),
+            Text(
+              authViewModel.translate(label),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0B1739),
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGridItem(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final authViewModel = Provider.of<AuthViewModel>(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 76,
+        child: Column(
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: const Color(0xFF0B1739), size: 22),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              authViewModel.translate(label),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0B1739),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -334,7 +356,9 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  authViewModel.translate('Apakah kamu yakin ingin keluar dari akun Kurir?\nPastikan tidak ada tugas penjemputan aktif.'),
+                  authViewModel.translate(
+                    'Apakah kamu yakin ingin keluar dari akun Kurir?\nPastikan tidak ada tugas penjemputan aktif.',
+                  ),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 13,
@@ -408,47 +432,6 @@ class _ProfileViewState extends State<ProfileView> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildGridItem(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final authViewModel = Provider.of<AuthViewModel>(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFFF1F5F9),
-              ),
-              child: Icon(icon, color: const Color(0xFF0B1739), size: 22),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              authViewModel.translate(label),
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF0B1739),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
