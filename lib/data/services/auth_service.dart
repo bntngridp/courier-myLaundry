@@ -37,6 +37,7 @@ class AuthService {
   Future<http.Response> register({
     required String username,
     required String email,
+    required String phoneNumber,
     required String password,
     required String confirmPassword,
     required String employeeCode,
@@ -48,6 +49,7 @@ class AuthService {
       body: jsonEncode({
         'username': username,
         'email': email,
+        'phone_number': phoneNumber,
         'password': password,
         'confirm_password': confirmPassword,
         'role': 'courier',

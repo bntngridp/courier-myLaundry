@@ -168,6 +168,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<bool> register({
     required String username,
     required String email,
+    required String phoneNumber,
     required String password,
     required String confirmPassword,
     required String employeeCode,
@@ -177,7 +178,7 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (username.isEmpty || email.isEmpty || password.isEmpty || employeeCode.isEmpty) {
+      if (username.isEmpty || email.isEmpty || phoneNumber.isEmpty || password.isEmpty || employeeCode.isEmpty) {
         throw Exception('Semua kolom wajib diisi.');
       }
       if (password != confirmPassword) {
@@ -186,6 +187,7 @@ class AuthViewModel extends ChangeNotifier {
       await authRepository.register(
         username: username,
         email: email,
+        phoneNumber: phoneNumber,
         password: password,
         confirmPassword: confirmPassword,
         employeeCode: employeeCode,

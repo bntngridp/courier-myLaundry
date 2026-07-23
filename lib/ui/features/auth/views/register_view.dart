@@ -15,6 +15,7 @@ class _RegisterViewState extends State<RegisterView> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _employeeCodeController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -23,6 +24,7 @@ class _RegisterViewState extends State<RegisterView> {
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     _employeeCodeController.dispose();
     super.dispose();
@@ -34,6 +36,7 @@ class _RegisterViewState extends State<RegisterView> {
       final success = await viewModel.register(
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
         password: _passwordController.text,
         confirmPassword: _passwordController.text, // Same as password for simplified UI
         employeeCode: _employeeCodeController.text.trim(),
@@ -198,6 +201,44 @@ class _RegisterViewState extends State<RegisterView> {
                           }
                           if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
                             return 'Masukkan format email yang valid';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Phone Number field
+                      TextFormField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
+                        style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Nomor Telepon (mis. 081234567890)',
+                          hintStyle: const TextStyle(color: Colors.black38, fontWeight: FontWeight.normal, fontSize: 13),
+                          prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF0007B0), size: 20),
+                          filled: true,
+                          fillColor: const Color(0xFFF8F9FA),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                            borderSide: const BorderSide(color: Color(0xFF0007B0), width: 1.5),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Masukkan nomor telepon Anda';
+                          }
+                          if (value.trim().length < 9) {
+                            return 'Nomor telepon tidak valid';
                           }
                           return null;
                         },

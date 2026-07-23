@@ -60,6 +60,7 @@ class AuthRepository {
   Future<bool> register({
     required String username,
     required String email,
+    required String phoneNumber,
     required String password,
     required String confirmPassword,
     required String employeeCode,
@@ -67,6 +68,7 @@ class AuthRepository {
     final response = await authService.register(
       username: username,
       email: email,
+      phoneNumber: phoneNumber,
       password: password,
       confirmPassword: confirmPassword,
       employeeCode: employeeCode,
