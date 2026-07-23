@@ -32,114 +32,215 @@ class _HomeViewState extends State<HomeView> {
     final authViewModel = Provider.of<AuthViewModel>(context);
     final takeOrderViewModel = Provider.of<TakeOrderViewModel>(context, listen: false);
 
+    final courierName = authViewModel.authRepository.currentUser?.username ?? 'Kurir';
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Main Content depending on index
-            if (_currentIndex == 0)
-              RefreshIndicator(
-                onRefresh: homeViewModel.checkActiveOrder,
-                color: const Color(0xFF0007B0),
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-                  children: [
-                    // App Bar info
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          // Main Content depending on index
+          if (_currentIndex == 0)
+            RefreshIndicator(
+              onRefresh: homeViewModel.checkActiveOrder,
+              color: const Color(0xFF0007B0),
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  // Gradient Header Card matching Customer App Design System
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF0B1739), Color(0xFF0007B0)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(36),
+                        bottomRight: Radius.circular(36),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x200007B0),
+                          blurRadius: 20,
+                          offset: Offset(0, 10),
+                        )
+                      ],
+                    ),
+                    padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        // Courier Profile & Notification Header Row
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Selamat Bekerja,',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black38,
-                                fontWeight: FontWeight.w500,
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      courierName.isNotEmpty ? courierName[0].toUpperCase() : 'K',
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Selamat Bekerja,',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$courierName 🚚',
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        letterSpacing: 0.3,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                            Text(
-                              authViewModel.authRepository.currentUser?.username ?? 'Kurir',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0B1739),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 22),
+                                onPressed: () {},
                               ),
                             ),
                           ],
                         ),
-                        // Notifications mock
+                        const SizedBox(height: 24),
+                        // Online Status Pill
                         Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                            color: Colors.white.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
                           ),
-                          child: IconButton(
-                            icon: const Icon(Icons.notifications_none, color: Color(0xFF0B1739)),
-                            onPressed: () {},
-                          ),
-                        )
-                      ],
-                    ),
-                    const SizedBox(height: 36),
-                    
-                    // Category buttons: Jemput Pesanan & Antar Pesanan
-                    Row(
-                      children: [
-                        // Jemput Pesanan
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFE6F0FF),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.local_shipping, color: Color(0xFF0007B0), size: 20),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Color(0xFF22C55E),
                                 ),
-                                const SizedBox(width: 12),
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Jemput',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0B1739),
-                                      ),
-                                    ),
-                                    Text(
-                                      'Pesanan',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.black38,
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Status: Siap Antar / Jemput',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Content Container with Padding
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      children: [
+                        // Category buttons: Jemput Pesanan & Antar Pesanan
+                        Row(
+                          children: [
+                            // Jemput Pesanan
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const TakeOrderView(),
+                                    ),
+                                  ).then((_) {
+                                    homeViewModel.checkActiveOrder();
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.03),
+                                        blurRadius: 14,
+                                        offset: const Offset(0, 6),
+                                      )
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: const BoxDecoration(
+                                          color: Color(0xFFEEF2FF),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(Icons.local_shipping_rounded, color: Color(0xFF0007B0), size: 22),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Jemput',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF0B1739),
+                                            ),
+                                          ),
+                                          Text(
+                                            'Pesanan',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.black45,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                         const SizedBox(width: 16),
                         // Antar Pesanan
                         Expanded(
@@ -459,67 +560,69 @@ class _HomeViewState extends State<HomeView> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 100), // Spacing for bottom navbar
-                  ],
-                ),
-              )
-            else
-              const ProfileView(),
-              
-            // Floating Bottom Navigation Bar (Visual fidelity to Figma spec)
-            Positioned(
-              bottom: 24,
-              left: 64,
-              right: 64,
-              child: Container(
-                height: 68,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    )
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // Home Icon Button
-                    IconButton(
-                      icon: Icon(
-                        Icons.home_filled,
-                        color: _currentIndex == 0 ? const Color(0xFF0007B0) : Colors.black26,
-                        size: 28,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _currentIndex = 0;
-                        });
-                      },
-                    ),
-                    // Profile Icon Button
-                    IconButton(
-                      icon: Icon(
-                        Icons.person,
-                        color: _currentIndex == 1 ? const Color(0xFF0007B0) : Colors.black26,
-                        size: 28,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _currentIndex = 1;
-                        });
-                      },
-                    ),
                   ],
                 ),
               ),
+              const SizedBox(height: 100), // Spacing for bottom navbar
+            ],
+          ),
+        )
+      else
+        const ProfileView(),
+              
+          // Floating Bottom Navigation Bar
+          Positioned(
+            bottom: 24,
+            left: 64,
+            right: 64,
+            child: Container(
+              height: 68,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  )
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Home Icon Button
+                  IconButton(
+                    icon: Icon(
+                      Icons.home_filled,
+                      color: _currentIndex == 0 ? const Color(0xFF0007B0) : Colors.black26,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _currentIndex = 0;
+                      });
+                    },
+                  ),
+                  // Profile Icon Button
+                  IconButton(
+                    icon: Icon(
+                      Icons.person,
+                      color: _currentIndex == 1 ? const Color(0xFF0007B0) : Colors.black26,
+                      size: 28,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _currentIndex = 1;
+                      });
+                    },
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
