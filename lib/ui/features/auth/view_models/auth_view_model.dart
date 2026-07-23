@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../data/repositories/auth_repository.dart';
 
@@ -311,6 +312,41 @@ class AuthViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> signInWithGoogle({String role = 'courier'}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final googleSignIn = GoogleSignIn(
+        clientId: '283643492359-mpbkb6sbjor6frhdt6u082ssj8as48ok.apps.googleusercontent.com',
+        scopes: ['email', 'profile'],
+      );
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      final auth = await account.authentication;
+      final idToken = auth.idToken ?? auth.accessToken;
+      if (idToken == null || idToken.isEmpty) {
+        throw Exception('Gagal mendapatkan token dari Google.');
+      }
+
+      final user = await authRepository.googleLogin(idToken, role: role);
+      _isLoading = false;
+      notifyListeners();
+      return user != null;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _isLoading = false;

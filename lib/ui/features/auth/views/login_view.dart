@@ -329,6 +329,69 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 20),
 
+                      // Or login with Google label
+                      Center(
+                        child: Text(
+                          viewModel.translate('Atau masuk dengan'),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.black38,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Google Icon Button
+                      Center(
+                        child: GestureDetector(
+                          onTap: () async {
+                            final navigator = Navigator.of(context);
+                            final messenger = ScaffoldMessenger.of(context);
+                            final success = await viewModel.signInWithGoogle(role: 'courier');
+                            if (success) {
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text('Login Berhasil dengan Google! Selamat bekerja! 🦅✨'),
+                                  backgroundColor: Color(0xFF0007B0),
+                                ),
+                              );
+                              navigator.pushReplacement(
+                                MaterialPageRoute(builder: (context) => const HomeView()),
+                              );
+                            }
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
+                            ),
+                            child: Center(
+                              child: Image.asset(
+                                'assets/images/google_logo.png',
+                                width: 24,
+                                height: 24,
+                                errorBuilder: (context, error, stackTrace) => const Icon(
+                                  Icons.g_mobiledata_rounded,
+                                  color: Color(0xFF0007B0),
+                                  size: 32,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
                       // Register link
                       GestureDetector(
                         onTap: () {
