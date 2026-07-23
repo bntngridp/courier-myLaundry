@@ -208,4 +208,21 @@ class AuthRepository {
       throw Exception(msg);
     }
   }
+
+  Future<List<Map<String, dynamic>>> getLoginHistory() async {
+    if (_token == null) return [];
+
+    try {
+      final response = await authService.getLoginHistory(_token!);
+      final body = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && (body['status'] == 'success' || body['success'] == true)) {
+        final List<dynamic> list = body['data'] ?? [];
+        return list.map((item) => Map<String, dynamic>.from(item)).toList();
+      }
+    } catch (_) {
+      // Fallback cleanly
+    }
+    return [];
+  }
 }

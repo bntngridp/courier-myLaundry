@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../view_models/delivery_view_model.dart';
 import '../../../shared/widgets/app_snackbar.dart';
@@ -88,8 +89,45 @@ class _DeliveryViewState extends State<DeliveryView> {
     return Stack(
       children: [
         Positioned.fill(
-          child: CustomPaint(
-            painter: _MockMapPainter(),
+          child: GoogleMap(
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(-6.919400, 107.622500),
+              zoom: 14.5,
+            ),
+            markers: {
+              Marker(
+                markerId: const MarkerId('outlet'),
+                position: const LatLng(-6.917464, 107.619123),
+                infoWindow: const InfoWindow(title: 'Outlet myLaundry'),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+              ),
+              Marker(
+                markerId: const MarkerId('courier'),
+                position: const LatLng(-6.919400, 107.622500),
+                infoWindow: const InfoWindow(title: 'Posisi Anda (Kurir)'),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+              ),
+              Marker(
+                markerId: const MarkerId('destination'),
+                position: const LatLng(-6.921464, 107.625123),
+                infoWindow: const InfoWindow(title: 'Tujuan Pengantaran (Nidu Askandar)'),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+              ),
+            },
+            polylines: {
+              const Polyline(
+                polylineId: PolylineId('courier_delivery_route'),
+                points: [
+                  LatLng(-6.917464, 107.619123),
+                  LatLng(-6.919400, 107.622500),
+                  LatLng(-6.921464, 107.625123),
+                ],
+                color: Color(0xFF0007B0),
+                width: 4,
+              ),
+            },
+            myLocationButtonEnabled: false,
+            zoomControlsEnabled: false,
           ),
         ),
         Positioned(
@@ -425,59 +463,4 @@ class _DeliveryViewState extends State<DeliveryView> {
   }
 }
 
-// Custom Painter to draw a beautiful visual representation of a map route
-class _MockMapPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFE2E8F0)
-      ..style = PaintingStyle.fill;
-    
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), paint);
 
-    final streetPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 24.0;
-
-    canvas.drawLine(Offset(size.width * 0.2, 0), Offset(size.width * 0.2, size.height), streetPaint);
-    canvas.drawLine(Offset(size.width * 0.5, 0), Offset(size.width * 0.5, size.height), streetPaint);
-    canvas.drawLine(Offset(size.width * 0.8, 0), Offset(size.width * 0.8, size.height), streetPaint);
-    
-    canvas.drawLine(Offset(0, size.height * 0.25), Offset(size.width, size.height * 0.25), streetPaint);
-    canvas.drawLine(Offset(0, size.height * 0.6), Offset(size.width, size.height * 0.6), streetPaint);
-    canvas.drawLine(Offset(0, size.height * 0.85), Offset(size.width, size.height * 0.85), streetPaint);
-
-    final routePaint = Paint()
-      ..color = const Color(0xFF0007B0)
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 8.0;
-
-    final path = Path()
-      ..moveTo(size.width * 0.2, size.height * 0.85)
-      ..lineTo(size.width * 0.2, size.height * 0.6)
-      ..lineTo(size.width * 0.8, size.height * 0.6)
-      ..lineTo(size.width * 0.8, size.height * 0.25);
-    
-    canvas.drawPath(path, routePaint);
-
-    final startPinPaint = Paint()
-      ..color = const Color(0xFF4CAF50)
-      ..style = PaintingStyle.fill;
-
-    final endPinPaint = Paint()
-      ..color = Colors.red
-      ..style = PaintingStyle.fill;
-
-    canvas.drawCircle(Offset(size.width * 0.2, size.height * 0.85), 14, startPinPaint);
-    canvas.drawCircle(Offset(size.width * 0.2, size.height * 0.85), 6, Paint()..color = Colors.white);
-
-    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.25), 14, endPinPaint);
-    canvas.drawCircle(Offset(size.width * 0.8, size.height * 0.25), 6, Paint()..color = Colors.white);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

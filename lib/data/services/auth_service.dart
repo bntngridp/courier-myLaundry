@@ -151,4 +151,15 @@ class AuthService {
       }),
     );
   }
+
+  Future<http.Response> getLoginHistory(String token) async {
+    final url = Uri.parse('$baseUrl/auth/login-history');
+    return await _client.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+  }
 }

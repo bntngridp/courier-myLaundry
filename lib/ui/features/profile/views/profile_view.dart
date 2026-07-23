@@ -76,18 +76,34 @@ class _ProfileViewState extends State<ProfileView> {
                   children: [
                     Row(
                       children: [
-                        // Avatar image circle
+                        // Avatar image circle with initial letter fallback
                         Container(
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
-                            image: const DecorationImage(
-                              image: NetworkImage(
-                                'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0007B0), Color(0xFF2563EB)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              name.isNotEmpty ? name[0].toUpperCase() : 'U',
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
