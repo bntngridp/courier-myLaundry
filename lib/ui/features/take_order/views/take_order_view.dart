@@ -129,62 +129,89 @@ class _TakeOrderViewState extends State<TakeOrderView> {
     }
   }
 
-  // STEP 0: App is OFF
-  Widget _buildStepOff(BuildContext context, TakeOrderViewModel viewModel) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 36.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            width: 140,
-            height: 140,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.black.withValues(alpha: 0.03),
-            ),
-            child: const Icon(
-              Icons.power_settings_new,
-              size: 64,
-              color: Colors.black26,
-            ),
-          ),
-          const SizedBox(height: 36),
-          const Text(
-            'Aktifkan aplikasimu untuk\nmendapatkan pesanan',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black38,
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+   // STEP 0: App is OFF (modernized)
+   Widget _buildStepOff(BuildContext context, TakeOrderViewModel viewModel) {
+     return Padding(
+       padding: const EdgeInsets.symmetric(horizontal: 32.0),
+       child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         crossAxisAlignment: CrossAxisAlignment.center,
+         children: [
+           // Modern icon emblem with subtle shadow
+           Container(
+             width: 140,
+             height: 140,
+             decoration: BoxDecoration(
+               shape: BoxShape.circle,
+               color: const Color(0xFFEAF4FF),
+               boxShadow: [
+                 BoxShadow(
+                   color: const Color(0xFF0007B0).withValues(alpha: 0.08),
+                   blurRadius: 28,
+                   offset: const Offset(0, 12),
+                 )
+               ],
+             ),
+             child: const Icon(
+               Icons.power_settings_new,
+               size: 60,
+               color: Color(0xFF0022CC),
+             ),
+           ),
+           const SizedBox(height: 40),
+           const Text(
+             'Aktifkan Aplikasimu',
+             textAlign: TextAlign.center,
+             style: TextStyle(
+               fontSize: 22,
+               fontWeight: FontWeight.w800,
+               color: Color(0xFF0B1739),
+               height: 1.3,
+             ),
+           ),
+           const SizedBox(height: 10),
+           const Text(
+             'Buka mode aktif untuk menerima pesanan laundry dari pelanggan terdekat',
+             textAlign: TextAlign.center,
+             style: TextStyle(
+               fontSize: 14,
+               color: Colors.black45,
+               height: 1.5,
+             ),
+           ),
+         ],
+       ),
+     );
+   }
 
-  // STEP 1: Searching for orders
-  Widget _buildStepSearching(BuildContext context, TakeOrderViewModel viewModel) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Spacer(),
-          const Text(
-            'Mencari Pesanan..',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0B1739),
-            ),
-          ),
-          const SizedBox(height: 48),
+   // STEP 1: Searching for orders (modernized)
+   Widget _buildStepSearching(BuildContext context, TakeOrderViewModel viewModel) {
+     return Padding(
+       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+       child: Column(
+         mainAxisAlignment: MainAxisAlignment.center,
+         crossAxisAlignment: CrossAxisAlignment.stretch,
+         children: [
+           const Spacer(),
+           const Text(
+             'Mencari Pesanan',
+             textAlign: TextAlign.center,
+             style: TextStyle(
+               fontSize: 22,
+               fontWeight: FontWeight.w800,
+               color: Color(0xFF0B1739),
+             ),
+           ),
+           const SizedBox(height: 10),
+           const Text(
+             'Sedang mencari pesanan terdekat untuk Anda...',
+             textAlign: TextAlign.center,
+             style: TextStyle(
+               fontSize: 14,
+               color: Colors.black45,
+             ),
+           ),
+           const SizedBox(height: 48),
           const Center(
             child: SizedBox(
               width: 80,
@@ -267,15 +294,24 @@ class _TakeOrderViewState extends State<TakeOrderView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'Pesanan Ditemukan',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0B1739),
-            ),
-          ),
+           const Text(
+             'Pesanan Ditemukan',
+             textAlign: TextAlign.center,
+             style: TextStyle(
+               fontSize: 22,
+               fontWeight: FontWeight.w800,
+               color: Color(0xFF0B1739),
+             ),
+           ),
+           const SizedBox(height: 8),
+           const Text(
+             'Pilih pesanan berikut untuk dimulai',
+             textAlign: TextAlign.center,
+             style: TextStyle(
+               fontSize: 13,
+               color: Colors.black45,
+             ),
+           ),
           const SizedBox(height: 24),
           Expanded(
             child: ListView.builder(
@@ -285,14 +321,21 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                 final mockDistances = ['2.5 km', '3.8 km', '4.2 km', '6.0 km'];
                 final distance = mockDistances[index % mockDistances.length];
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
+                 return Container(
+                   margin: const EdgeInsets.only(bottom: 16),
+                   padding: const EdgeInsets.all(16),
+                   decoration: BoxDecoration(
+                     color: Colors.white,
+                     borderRadius: BorderRadius.circular(20),
+                     border: Border.all(color: Colors.transparent),
+                     boxShadow: [
+                       BoxShadow(
+                         color: const Color(0xFF0007B0).withValues(alpha: 0.06),
+                         blurRadius: 20,
+                         offset: const Offset(0, 8),
+                       )
+                     ],
+                   ),
                   child: Row(
                     children: [
                       Container(
