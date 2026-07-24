@@ -30,11 +30,15 @@ class ChatMessage {
   final String text;
   final bool isMe;
   final String timestamp;
+  final bool isAudio;
+  final String? audioDuration;
 
   ChatMessage({
     required this.text,
     required this.isMe,
     required this.timestamp,
+    this.isAudio = false,
+    this.audioDuration,
   });
 }
 
@@ -321,6 +325,43 @@ class TakeOrderViewModel extends ChangeNotifier {
         text: 'Oke mas, ditunggu ya! 👍',
         isMe: false,
         timestamp: timestampR,
+      ));
+      notifyListeners();
+    });
+  }
+
+  void sendVoiceMessage(String duration) {
+    final now = DateTime.now();
+    final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+    final ampm = now.hour >= 12 ? 'pm' : 'am';
+    final minute = now.minute.toString().padLeft(2, '0');
+    final timestamp = '$hour:$minute $ampm';
+
+    _chatMessages.add(
+      ChatMessage(
+        text: 'Pesan Suara',
+        isMe: true,
+        timestamp: timestamp,
+        isAudio: true,
+        audioDuration: duration,
+      ),
+    );
+    notifyListeners();
+
+    // Trigger mock reply after 2.5 seconds
+    Future.delayed(const Duration(milliseconds: 2500), () {
+      final nowReply = DateTime.now();
+      final hourR = nowReply.hour > 12 ? nowReply.hour - 12 : (nowReply.hour == 0 ? 12 : nowReply.hour);
+      final ampmR = nowReply.hour >= 12 ? 'pm' : 'am';
+      final minuteR = nowReply.minute.toString().padLeft(2, '0');
+      final timestampR = '$hourR:$minuteR $ampmR';
+
+      _chatMessages.add(ChatMessage(
+        text: 'Pesan Suara',
+        isMe: false,
+        timestamp: timestampR,
+        isAudio: true,
+        audioDuration: '00:06',
       ));
       notifyListeners();
     });
