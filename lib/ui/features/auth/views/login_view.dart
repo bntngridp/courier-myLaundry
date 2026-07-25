@@ -349,29 +349,11 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Register link
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => const RegisterView()),
-                          );
-                        },
-                        child: Text.rich(
-                          TextSpan(
-                            text: viewModel.translate('Belum punya akun? '),
-                            style: const TextStyle(fontSize: 12, color: Colors.black54),
-                            children: [
-                              TextSpan(
-                                text: viewModel.translate('Yuk Daftar'),
-                                style: const TextStyle(
-                                  color: Color(0xFF0007B0),
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ],
-                          ),
+                      // Admin Account Info Notice
+                      Center(
+                        child: Text(
+                          viewModel.translate('Akun kurir dibuatkan oleh Admin. Hubungi Admin jika Anda belum memiliki akun.'),
+                          style: const TextStyle(fontSize: 12, color: Colors.black45, height: 1.4),
                           textAlign: TextAlign.center,
                         ),
                       ),
