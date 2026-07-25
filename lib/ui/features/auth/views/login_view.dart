@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../view_models/auth_view_model.dart';
-import 'register_view.dart';
 import 'forgot_password_view.dart';
 import '../../home/views/home_view.dart';
 import '../../../shared/widgets/app_snackbar.dart';
