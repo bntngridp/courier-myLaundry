@@ -122,6 +122,7 @@ class TakeOrderViewModel extends ChangeNotifier {
 
   Future<void> toggleAppActivity(bool active) async {
     _isAppActive = active;
+    await authRepository.updateCourierStatus(active);
     if (active) {
       _currentStep = 1; // Searching screen
       _isSearching = true;

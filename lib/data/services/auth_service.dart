@@ -162,4 +162,18 @@ class AuthService {
       },
     );
   }
+
+  Future<http.Response> updateCourierStatus(int courierId, bool isAvailable, String token) async {
+    final url = Uri.parse('$baseUrl/couriers/$courierId/status');
+    return await _client.put(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'is_available': isAvailable,
+      }),
+    );
+  }
 }

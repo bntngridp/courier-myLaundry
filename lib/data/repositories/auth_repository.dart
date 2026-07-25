@@ -225,4 +225,15 @@ class AuthRepository {
     }
     return [];
   }
+
+  Future<bool> updateCourierStatus(bool isAvailable) async {
+    if (_token == null || _currentUser == null) return false;
+
+    try {
+      final response = await authService.updateCourierStatus(_currentUser!.id, isAvailable, _token!);
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 }
