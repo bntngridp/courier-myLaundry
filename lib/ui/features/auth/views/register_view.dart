@@ -21,6 +21,16 @@ class _RegisterViewState extends State<RegisterView> {
   bool _isPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    _usernameController.clear();
+    _emailController.clear();
+    _phoneController.clear();
+    _passwordController.clear();
+    _employeeCodeController.clear();
+  }
+
+  @override
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
@@ -143,6 +153,9 @@ class _RegisterViewState extends State<RegisterView> {
                       // Username field
                       TextFormField(
                         controller: _usernameController,
+                        autofillHints: const [AutofillHints.newUsername],
+                        enableSuggestions: false,
+                        autocorrect: false,
                         keyboardType: TextInputType.name,
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
@@ -178,6 +191,9 @@ class _RegisterViewState extends State<RegisterView> {
                       // Email field
                       TextFormField(
                         controller: _emailController,
+                        autofillHints: const [AutofillHints.email],
+                        enableSuggestions: false,
+                        autocorrect: false,
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
@@ -216,6 +232,8 @@ class _RegisterViewState extends State<RegisterView> {
                       // Phone Number field
                       TextFormField(
                         controller: _phoneController,
+                        enableSuggestions: false,
+                        autocorrect: false,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
@@ -254,6 +272,9 @@ class _RegisterViewState extends State<RegisterView> {
                       // Password field
                       TextFormField(
                         controller: _passwordController,
+                        autofillHints: const [AutofillHints.newPassword],
+                        enableSuggestions: false,
+                        autocorrect: false,
                         obscureText: !_isPasswordVisible,
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
