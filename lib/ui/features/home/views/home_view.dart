@@ -298,20 +298,20 @@ class _HomeViewState extends State<HomeView> {
                                         child: const Icon(Icons.local_shipping_rounded, color: Color(0xFF0007B0), size: 22),
                                       ),
                                       const SizedBox(width: 12),
-                                      const Column(
+                                      Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Jemput',
-                                            style: TextStyle(
+                                            authViewModel.translate('Jemput'),
+                                            style: const TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.bold,
                                               color: Color(0xFF0B1739),
                                             ),
                                           ),
                                           Text(
-                                            'Pesanan',
-                                            style: TextStyle(
+                                            authViewModel.translate('Pesanan'),
+                                            style: const TextStyle(
                                               fontSize: 11,
                                               color: Colors.black45,
                                             ),
@@ -350,7 +350,7 @@ class _HomeViewState extends State<HomeView> {
 
                                 final deliverableOrder = orders.firstWhere(
                                   (o) => o.status.toLowerCase() == 'done' || o.status.toLowerCase() == 'delivering',
-                                  orElse: () => throw Exception('Tidak ada pesanan yang siap diantarkan kembali.'),
+                                  orElse: () => throw Exception(authViewModel.translate('Tidak ada pesanan yang siap diantarkan kembali.')),
                                 );
 
                                 if (context.mounted) {
@@ -399,20 +399,20 @@ class _HomeViewState extends State<HomeView> {
                                     child: const Icon(Icons.outbox, color: Color(0xFF0007B0), size: 20),
                                   ),
                                   const SizedBox(width: 12),
-                                  const Column(
+                                  Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Antar',
-                                        style: TextStyle(
+                                        authViewModel.translate('Antar'),
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF0B1739),
                                         ),
                                       ),
                                       Text(
-                                        'Pesanan',
-                                        style: TextStyle(
+                                        authViewModel.translate('Pesanan'),
+                                        style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.black38,
                                         ),
@@ -505,9 +505,9 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  'Cari & Jemput Pesanan',
-                                  style: TextStyle(
+                                child: Text(
+                                  authViewModel.translate('Cari & Jemput Pesanan'),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -554,9 +554,9 @@ class _HomeViewState extends State<HomeView> {
                               ),
                             ),
                             const SizedBox(height: 24),
-                            const Text(
-                              'Pesanan Sedang Berjalan',
-                              style: TextStyle(
+                            Text(
+                              authViewModel.translate('Pesanan Sedang Berjalan'),
+                              style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF0B1739),
@@ -587,9 +587,9 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  'Ambil Pesanan',
-                                  style: TextStyle(
+                                child: Text(
+                                  authViewModel.translate('Ambil Pesanan'),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.black26,
@@ -623,9 +623,9 @@ class _HomeViewState extends State<HomeView> {
                                   ),
                                   elevation: 0,
                                 ),
-                                child: const Text(
-                                  'Lanjutkan Pesanan Terakhir',
-                                  style: TextStyle(
+                                child: Text(
+                                  authViewModel.translate('Lanjutkan Pesanan Terakhir'),
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,

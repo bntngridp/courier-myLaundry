@@ -165,7 +165,7 @@ class _ProfileViewState extends State<ProfileView> {
               _buildQuickButton(
                 context,
                 icon: Icons.assignment_outlined,
-                label: 'Riwayat',
+                label: authViewModel.translate('Riwayat Pesanan'),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -183,7 +183,7 @@ class _ProfileViewState extends State<ProfileView> {
                   _buildGridItem(
                     context,
                     icon: Icons.security_outlined,
-                    label: 'Keamanan',
+                    label: authViewModel.translate('Keamanan'),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -194,7 +194,7 @@ class _ProfileViewState extends State<ProfileView> {
                   _buildGridItem(
                     context,
                     icon: Icons.translate_outlined,
-                    label: 'Bahasa',
+                    label: authViewModel.translate('Bahasa'),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -205,7 +205,7 @@ class _ProfileViewState extends State<ProfileView> {
                   _buildGridItem(
                     context,
                     icon: Icons.description_outlined,
-                    label: 'Ketentuan',
+                    label: authViewModel.translate('Ketentuan'),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -216,7 +216,7 @@ class _ProfileViewState extends State<ProfileView> {
                   _buildGridItem(
                     context,
                     icon: Icons.logout_outlined,
-                    label: 'Keluar',
+                    label: authViewModel.translate('Keluar'),
                     onTap: () {
                       _showLogoutDialog(context, authViewModel);
                     },

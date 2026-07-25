@@ -80,6 +80,8 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModel = Provider.of<AuthViewModel>(context);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -89,9 +91,9 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0B1739)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Riwayat',
-          style: TextStyle(
+        title: Text(
+          authViewModel.translate('Riwayat Pesanan'),
+          style: const TextStyle(
             color: Color(0xFF0B1739),
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -100,12 +102,12 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: _buildBody(),
+        child: _buildBody(authViewModel),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AuthViewModel authViewModel) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
@@ -124,7 +126,7 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
               const Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
               const SizedBox(height: 16),
               Text(
-                'Terjadi Kesalahan',
+                authViewModel.translate('Terjadi Kesalahan'),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -151,7 +153,7 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+                child: Text(authViewModel.translate('Coba Lagi'), style: const TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -168,19 +170,19 @@ class _OrderHistoryViewState extends State<OrderHistoryView> {
             children: [
               const Icon(Icons.folder_open_outlined, size: 64, color: Colors.black26),
               const SizedBox(height: 16),
-              const Text(
-                'Belum Ada Riwayat',
-                style: TextStyle(
+              Text(
+                authViewModel.translate('Belum ada riwayat pesanan'),
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0B1739),
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Semua pesanan yang telah Anda selesaikan akan muncul di sini.',
+              Text(
+                authViewModel.translate('Pesanan yang sudah kamu selesaikan akan muncul di sini'),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.black38),
+                style: const TextStyle(fontSize: 14, color: Colors.black38),
               ),
             ],
           ),
