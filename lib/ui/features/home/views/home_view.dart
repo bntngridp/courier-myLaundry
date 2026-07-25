@@ -179,70 +179,57 @@ class _HomeViewState extends State<HomeView> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        // Online Status Pill (Interactive & Dynamic DB Synchronization)
+                        // Simple read-only status badge in header
                         Consumer<AuthViewModel>(
                           builder: (context, authVm, child) {
                             final currentUser = authVm.authRepository.currentUser;
                             final bool isAvailable = currentUser?.isAvailable ?? true;
-                            
-                            String statusText = isAvailable ? 'Status: Available / Siap Tugas' : 'Status: Offline / Istirahat';
-                            Color statusColor = isAvailable ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF);
+
+                            Color dotColor;
+                            String badgeLabel;
 
                             if (homeViewModel.hasActiveOrder && homeViewModel.activeOrder != null) {
                               final st = homeViewModel.activeOrder!.status.toLowerCase();
                               if (st.contains('delivering')) {
-                                statusText = 'Status: Mengantar Order #${homeViewModel.activeOrder!.id}';
-                                statusColor = const Color(0xFF3B82F6); // Blue
+                                dotColor = const Color(0xFF3B82F6);
+                                badgeLabel = authVm.translate('Mengantar');
                               } else {
-                                statusText = 'Status: Menjemput Order #${homeViewModel.activeOrder!.id}';
-                                statusColor = const Color(0xFFF59E0B); // Amber
+                                dotColor = const Color(0xFFF59E0B);
+                                badgeLabel = authVm.translate('Menjemput');
                               }
+                            } else {
+                              dotColor = isAvailable ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF);
+                              badgeLabel = isAvailable ? authVm.translate('Siap Tugas') : authVm.translate('Istirahat');
                             }
 
-                            return GestureDetector(
-                              onTap: homeViewModel.hasActiveOrder ? null : () async {
-                                final newStatus = !isAvailable;
-                                await authVm.toggleCourierStatus(newStatus);
-                                if (context.mounted) {
-                                  AppSnackBar.showSuccess(
-                                    context,
-                                    newStatus ? 'Status bertugas diaktifkan (Available)' : 'Status bertugas dinonaktifkan (Offline)',
-                                  );
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: statusColor,
-                                      ),
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 7,
+                                    height: 7,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: dotColor,
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      statusText,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Text(
+                                    badgeLabel,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                    if (!homeViewModel.hasActiveOrder) ...[
-                                      const SizedBox(width: 6),
-                                      const Icon(Icons.sync_alt_rounded, color: Colors.white70, size: 14),
-                                    ],
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             );
                           },
@@ -258,6 +245,14 @@ class _HomeViewState extends State<HomeView> {
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Column(
                       children: [
+                        // ─── COURIER STATUS TOGGLE CARD ──────────────────────
+                        // Always visible — controls courier duty mode
+                        _CourierStatusCard(
+                          authViewModel: authViewModel,
+                          homeViewModel: homeViewModel,
+                        ),
+                        const SizedBox(height: 16),
+
                         // ─── ACTIVE ORDER PROGRESS TRACKER ──────────────────
                         // Only shown when there's an active order
                         if (homeViewModel.hasActiveOrder && homeViewModel.activeOrder != null) ...[
@@ -463,9 +458,188 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
+// ─── Courier Status Toggle Card ────────────────────────────────────────────────
+// Always visible — prominently controls courier duty mode (Available / Offline)
+// Full BE sync via authViewModel.toggleCourierStatus()
+class _CourierStatusCard extends StatefulWidget {
+  final AuthViewModel authViewModel;
+  final HomeViewModel homeViewModel;
+
+  const _CourierStatusCard({
+    required this.authViewModel,
+    required this.homeViewModel,
+  });
+
+  @override
+  State<_CourierStatusCard> createState() => _CourierStatusCardState();
+}
+
+class _CourierStatusCardState extends State<_CourierStatusCard> {
+  bool _isLoading = false;
+
+  Future<void> _toggle(bool newValue) async {
+    if (_isLoading || widget.homeViewModel.hasActiveOrder) return;
+    setState(() => _isLoading = true);
+    try {
+      await widget.authViewModel.toggleCourierStatus(newValue);
+      if (mounted) {
+        AppSnackBar.showSuccess(
+          context,
+          newValue
+              ? widget.authViewModel.translate('Status bertugas diaktifkan')
+              : widget.authViewModel.translate('Status bertugas dinonaktifkan'),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        AppSnackBar.showError(
+          context,
+          widget.authViewModel.translate('Gagal mengubah status, coba lagi'),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authVm = widget.authViewModel;
+    final currentUser = authVm.authRepository.currentUser;
+    final bool isAvailable = currentUser?.isAvailable ?? true;
+    final bool hasActiveOrder = widget.homeViewModel.hasActiveOrder;
+
+    // State config
+    final Color accentColor = isAvailable ? const Color(0xFF16A34A) : const Color(0xFF6B7280);
+    final Color accentBg   = isAvailable ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC);
+    final Color borderColor = isAvailable ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0);
+
+    final String statusLabel = hasActiveOrder
+        ? authVm.translate('Sedang Bertugas')
+        : isAvailable
+            ? authVm.translate('Siap Bertugas')
+            : authVm.translate('Tidak Bertugas');
+
+    final String statusDesc = hasActiveOrder
+        ? authVm.translate('Selesaikan pesanan aktif terlebih dahulu sebelum mengubah status.')
+        : isAvailable
+            ? authVm.translate('Kamu bisa menerima dan menjemput pesanan pelanggan.')
+            : authVm.translate('Kamu tidak akan menerima pesanan baru saat istirahat.');
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: accentBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor, width: 1.5),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      child: Row(
+        children: [
+          // Left — icon + text
+          Expanded(
+            child: Row(
+              children: [
+                // Status icon badge
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accentColor.withValues(alpha: 0.12),
+                  ),
+                  child: Center(
+                    child: _isLoading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: accentColor,
+                            ),
+                          )
+                        : Icon(
+                            hasActiveOrder
+                                ? Icons.directions_bike_rounded
+                                : isAvailable
+                                    ? Icons.check_circle_rounded
+                                    : Icons.bedtime_rounded,
+                            color: accentColor,
+                            size: 24,
+                          ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                // Labels
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            statusLabel,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: accentColor,
+                              letterSpacing: 0.1,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          // Live dot
+                          if (isAvailable && !_isLoading)
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: accentColor,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        statusDesc,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Right — Toggle Switch
+          Transform.scale(
+            scale: 0.9,
+            child: Switch(
+              value: isAvailable,
+              onChanged: hasActiveOrder || _isLoading ? null : _toggle,
+              activeThumbColor: Colors.white,
+              activeTrackColor: const Color(0xFF16A34A),
+              inactiveThumbColor: Colors.white,
+              inactiveTrackColor: const Color(0xFFCBD5E1),
+              trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Active Order Progress Tracker Widget ─────────────────────────────────────
 // Shown only when homeViewModel.hasActiveOrder == true
 class _ActiveOrderTracker extends StatelessWidget {
+
   final AuthViewModel authViewModel;
   final HomeViewModel homeViewModel;
   final TakeOrderViewModel takeOrderViewModel;
