@@ -38,6 +38,14 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleCourierStatus(bool isAvailable) async {
+    _isLoading = true;
+    notifyListeners();
+    await authRepository.updateCourierStatus(isAvailable);
+    _isLoading = false;
+    notifyListeners();
+  }
+
   String translate(String key) {
     if (_currentLanguage == 'en') {
       return _translations['en']?[key] ?? key;

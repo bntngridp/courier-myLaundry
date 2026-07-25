@@ -3,12 +3,14 @@ class User {
   final String username;
   final String email;
   final String role;
+  final bool isAvailable;
 
   User({
     required this.id,
     required this.username,
     required this.email,
     required this.role,
+    this.isAvailable = true,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class User {
       username: json['username'] ?? '',
       email: json['email'] ?? '',
       role: json['role'] ?? '',
+      isAvailable: json['is_available'] ?? json['isAvailable'] ?? true,
     );
   }
 
@@ -26,6 +29,7 @@ class User {
       'username': username,
       'email': email,
       'role': role,
+      'is_available': isAvailable,
     };
   }
 }

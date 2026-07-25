@@ -231,7 +231,16 @@ class AuthRepository {
 
     try {
       final response = await authService.updateCourierStatus(_currentUser!.id, isAvailable, _token!);
-      return response.statusCode == 200;
+      if (response.statusCode == 200) {
+        final updatedUser = await getMe();
+        if (updatedUser != null) {
+          _currentUser = updatedUser;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('auth_user', jsonEncode(updatedUser.toJson()));
+        }
+        return true;
+      }
+      return false;
     } catch (_) {
       return false;
     }

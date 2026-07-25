@@ -179,11 +179,14 @@ class _HomeViewState extends State<HomeView> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        // Online Status Pill (Dynamic DB Synchronization)
-                        Builder(
-                          builder: (context) {
-                            String statusText = 'Status: Available / Siap Tugas';
-                            Color statusColor = const Color(0xFF22C55E);
+                        // Online Status Pill (Interactive & Dynamic DB Synchronization)
+                        Consumer<AuthViewModel>(
+                          builder: (context, authVm, child) {
+                            final currentUser = authVm.authRepository.currentUser;
+                            final bool isAvailable = currentUser?.isAvailable ?? true;
+                            
+                            String statusText = isAvailable ? 'Status: Available / Siap Tugas' : 'Status: Offline / Istirahat';
+                            Color statusColor = isAvailable ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF);
 
                             if (homeViewModel.hasActiveOrder && homeViewModel.activeOrder != null) {
                               final st = homeViewModel.activeOrder!.status.toLowerCase();
@@ -196,34 +199,50 @@ class _HomeViewState extends State<HomeView> {
                               }
                             }
 
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: statusColor,
+                            return GestureDetector(
+                              onTap: homeViewModel.hasActiveOrder ? null : () async {
+                                final newStatus = !isAvailable;
+                                await authVm.toggleCourierStatus(newStatus);
+                                if (context.mounted) {
+                                  AppSnackBar.showSuccess(
+                                    context,
+                                    newStatus ? 'Status bertugas diaktifkan (Available)' : 'Status bertugas dinonaktifkan (Offline)',
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: statusColor,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    statusText,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      statusText,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    if (!homeViewModel.hasActiveOrder) ...[
+                                      const SizedBox(width: 6),
+                                      const Icon(Icons.sync_alt_rounded, color: Colors.white70, size: 14),
+                                    ],
+                                  ],
+                                ),
                               ),
                             );
                           },
