@@ -220,7 +220,7 @@ class _RegisterViewState extends State<RegisterView> {
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: 'Nomor Telepon (mis. 081234567890)',
+                          hintText: 'Nomor Telepon',
                           hintStyle: const TextStyle(color: Colors.black38, fontWeight: FontWeight.normal, fontSize: 13),
                           prefixIcon: const Icon(Icons.phone_outlined, color: Color(0xFF0007B0), size: 20),
                           filled: true,
@@ -258,7 +258,7 @@ class _RegisterViewState extends State<RegisterView> {
                         textInputAction: TextInputAction.next,
                         style: const TextStyle(fontWeight: FontWeight.w500, color: Color(0xFF0B1739), fontSize: 14),
                         decoration: InputDecoration(
-                          hintText: viewModel.translate('Kata Sandi Baru'),
+                          hintText: viewModel.translate('Kata Sandi'),
                           hintStyle: const TextStyle(color: Colors.black38, fontWeight: FontWeight.normal, fontSize: 13),
                           prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0007B0), size: 20),
                           suffixIcon: IconButton(

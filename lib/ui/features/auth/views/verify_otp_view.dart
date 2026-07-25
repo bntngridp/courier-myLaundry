@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -15,9 +16,34 @@ class VerifyOtpView extends StatefulWidget {
 class _VerifyOtpViewState extends State<VerifyOtpView> {
   final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  Timer? _timer;
+  int _cooldownSeconds = 60;
+
+  @override
+  void initState() {
+    super.initState();
+    _startCooldownTimer();
+  }
+
+  void _startCooldownTimer([int seconds = 60]) {
+    _timer?.cancel();
+    setState(() {
+      _cooldownSeconds = seconds;
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_cooldownSeconds > 0) {
+        setState(() {
+          _cooldownSeconds--;
+        });
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     for (var controller in _controllers) {
       controller.dispose();
     }
@@ -50,12 +76,14 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
   }
 
   void _handleResend() async {
+    if (_cooldownSeconds > 0) return;
     final viewModel = Provider.of<AuthViewModel>(context, listen: false);
     if (viewModel.emailForReset == null) return;
 
     final success = await viewModel.sendOtp(viewModel.emailForReset!);
     if (success && mounted) {
       AppSnackBar.showSuccess(context, 'Kode OTP baru telah dikirim ke email Anda');
+      _startCooldownTimer(60);
     } else if (mounted && viewModel.errorMessage != null) {
       AppSnackBar.showError(context, viewModel.errorMessage!);
     }
@@ -245,16 +273,18 @@ class _VerifyOtpViewState extends State<VerifyOtpView> {
                     const SizedBox(height: 36),
                     // Resend Link
                     GestureDetector(
-                      onTap: viewModel.isLoading ? null : _handleResend,
+                      onTap: viewModel.isLoading || _cooldownSeconds > 0 ? null : _handleResend,
                       child: Text.rich(
                         TextSpan(
                           text: 'Kode belum masuk? ',
                           style: const TextStyle(fontSize: 14, color: Colors.black54),
                           children: [
                             TextSpan(
-                              text: 'Kirim Ulang',
+                              text: _cooldownSeconds > 0
+                                  ? 'Kirim Ulang ($_cooldownSeconds s)'
+                                  : 'Kirim Ulang',
                               style: TextStyle(
-                                color: viewModel.isLoading
+                                color: (viewModel.isLoading || _cooldownSeconds > 0)
                                     ? Colors.black26
                                     : const Color(0xFF0007B0),
                                 fontWeight: FontWeight.bold,
