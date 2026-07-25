@@ -178,62 +178,6 @@ class _HomeViewState extends State<HomeView> {
                              ),
                           ],
                         ),
-                        const SizedBox(height: 24),
-                        // Simple read-only status badge in header
-                        Consumer<AuthViewModel>(
-                          builder: (context, authVm, child) {
-                            final currentUser = authVm.authRepository.currentUser;
-                            final bool isAvailable = currentUser?.isAvailable ?? true;
-
-                            Color dotColor;
-                            String badgeLabel;
-
-                            if (homeViewModel.hasActiveOrder && homeViewModel.activeOrder != null) {
-                              final st = homeViewModel.activeOrder!.status.toLowerCase();
-                              if (st.contains('delivering')) {
-                                dotColor = const Color(0xFF3B82F6);
-                                badgeLabel = authVm.translate('Mengantar');
-                              } else {
-                                dotColor = const Color(0xFFF59E0B);
-                                badgeLabel = authVm.translate('Menjemput');
-                              }
-                            } else {
-                              dotColor = isAvailable ? const Color(0xFF22C55E) : const Color(0xFF9CA3AF);
-                              badgeLabel = isAvailable ? authVm.translate('Siap Tugas') : authVm.translate('Istirahat');
-                            }
-
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.10),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 7,
-                                    height: 7,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: dotColor,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 7),
-                                  Text(
-                                    badgeLabel,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
                       ],
                     ),
                   ),
@@ -477,6 +421,86 @@ class _CourierStatusCard extends StatefulWidget {
 class _CourierStatusCardState extends State<_CourierStatusCard> {
   bool _isLoading = false;
 
+  Future<void> _confirmAndToggle(bool newValue) async {
+    if (_isLoading || widget.homeViewModel.hasActiveOrder) return;
+
+    final authVm = widget.authViewModel;
+    final title = newValue
+        ? authVm.translate('Aktifkan Status Bertugas?')
+        : authVm.translate('Nonaktifkan Status Bertugas?');
+    final content = newValue
+        ? authVm.translate('Apakah kamu yakin ingin mengubah status menjadi Siap Tugas? Kamu akan mulai menerima pesanan penjemputan dari pelanggan.')
+        : authVm.translate('Apakah kamu yakin ingin mengubah status menjadi Istirahat / Non-aktif? Kamu tidak akan menerima pesanan penjemputan baru.');
+
+    final confirmText = newValue
+        ? authVm.translate('Ya, Aktifkan')
+        : authVm.translate('Ya, Nonaktifkan');
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(
+              newValue ? Icons.check_circle_rounded : Icons.bedtime_rounded,
+              color: newValue ? const Color(0xFF16A34A) : const Color(0xFF6B7280),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0B1739),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          content,
+          style: const TextStyle(
+            fontSize: 13,
+            color: Color(0xFF64748B),
+            height: 1.4,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.pop(context, false),
+            style: OutlinedButton.styleFrom(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              side: const BorderSide(color: Color(0xFFCBD5E1)),
+            ),
+            child: Text(
+              authVm.translate('Batal'),
+              style: const TextStyle(color: Color(0xFF64748B)),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: newValue ? const Color(0xFF16A34A) : const Color(0xFF6B7280),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              confirmText,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _toggle(newValue);
+    }
+  }
+
   Future<void> _toggle(bool newValue) async {
     if (_isLoading || widget.homeViewModel.hasActiveOrder) return;
     setState(() => _isLoading = true);
@@ -526,111 +550,114 @@ class _CourierStatusCardState extends State<_CourierStatusCard> {
             ? authVm.translate('Kamu bisa menerima dan menjemput pesanan pelanggan.')
             : authVm.translate('Kamu tidak akan menerima pesanan baru saat istirahat.');
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      decoration: BoxDecoration(
-        color: accentBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      child: Row(
-        children: [
-          // Left — icon + text
-          Expanded(
-            child: Row(
-              children: [
-                // Status icon badge
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: accentColor.withValues(alpha: 0.12),
-                  ),
-                  child: Center(
-                    child: _isLoading
-                        ? SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: accentColor,
-                            ),
-                          )
-                        : Icon(
-                            hasActiveOrder
-                                ? Icons.directions_bike_rounded
-                                : isAvailable
-                                    ? Icons.check_circle_rounded
-                                    : Icons.bedtime_rounded,
-                            color: accentColor,
-                            size: 24,
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                // Labels
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            statusLabel,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: accentColor,
-                              letterSpacing: 0.1,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          // Live dot
-                          if (isAvailable && !_isLoading)
-                            Container(
-                              width: 7,
-                              height: 7,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: hasActiveOrder || _isLoading ? null : () => _confirmAndToggle(!isAvailable),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: accentBg,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 1.5),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        child: Row(
+          children: [
+            // Left — icon + text
+            Expanded(
+              child: Row(
+                children: [
+                  // Status icon badge
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: accentColor.withValues(alpha: 0.12),
+                    ),
+                    child: Center(
+                      child: _isLoading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
                                 color: accentColor,
                               ),
+                            )
+                          : Icon(
+                              hasActiveOrder
+                                  ? Icons.directions_bike_rounded
+                                  : isAvailable
+                                      ? Icons.check_circle_rounded
+                                      : Icons.bedtime_rounded,
+                              color: accentColor,
+                              size: 24,
                             ),
-                        ],
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        statusDesc,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFF64748B),
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 14),
+                  // Labels
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              statusLabel,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: accentColor,
+                                letterSpacing: 0.1,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            // Live dot
+                            if (isAvailable && !_isLoading)
+                              Container(
+                                width: 7,
+                                height: 7,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: accentColor,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          statusDesc,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF64748B),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          // Right — Toggle Switch
-          Transform.scale(
-            scale: 0.9,
-            child: Switch(
-              value: isAvailable,
-              onChanged: hasActiveOrder || _isLoading ? null : _toggle,
-              activeThumbColor: Colors.white,
-              activeTrackColor: const Color(0xFF16A34A),
-              inactiveThumbColor: Colors.white,
-              inactiveTrackColor: const Color(0xFFCBD5E1),
-              trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+            const SizedBox(width: 12),
+            // Right — Toggle Switch
+            Transform.scale(
+              scale: 0.9,
+              child: Switch(
+                value: isAvailable,
+                onChanged: hasActiveOrder || _isLoading ? null : _confirmAndToggle,
+                activeThumbColor: Colors.white,
+                activeTrackColor: const Color(0xFF16A34A),
+                inactiveThumbColor: Colors.white,
+                inactiveTrackColor: const Color(0xFFCBD5E1),
+                trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
