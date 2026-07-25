@@ -41,9 +41,12 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> toggleCourierStatus(bool isAvailable) async {
     _isLoading = true;
     notifyListeners();
-    await authRepository.updateCourierStatus(isAvailable);
+    final success = await authRepository.updateCourierStatus(isAvailable);
     _isLoading = false;
     notifyListeners();
+    if (!success) {
+      throw Exception('Gagal memperbarui status keberadaan kurir.');
+    }
   }
 
   String translate(String key) {

@@ -191,9 +191,13 @@ class _HomeViewState extends State<HomeView> {
                       children: [
                         // ─── COURIER STATUS TOGGLE CARD ──────────────────────
                         // Always visible — controls courier duty mode
-                        _CourierStatusCard(
-                          authViewModel: authViewModel,
-                          homeViewModel: homeViewModel,
+                        Consumer<AuthViewModel>(
+                          builder: (context, authVm, child) {
+                            return _CourierStatusCard(
+                              authViewModel: authVm,
+                              homeViewModel: homeViewModel,
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
 

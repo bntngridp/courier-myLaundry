@@ -232,16 +232,24 @@ class AuthRepository {
     try {
       final response = await authService.updateCourierStatus(_currentUser!.id, isAvailable, _token!);
       if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        final bool newIsAvailable = body['is_available'] ?? isAvailable;
+        
         final updatedUser = await getMe();
-        if (updatedUser != null) {
-          _currentUser = updatedUser;
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('auth_user', jsonEncode(updatedUser.toJson()));
-        }
+        _currentUser = User(
+          id: updatedUser?.id ?? _currentUser!.id,
+          username: updatedUser?.username ?? _currentUser!.username,
+          email: updatedUser?.email ?? _currentUser!.email,
+          role: updatedUser?.role ?? _currentUser!.role,
+          isAvailable: newIsAvailable,
+        );
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_user', jsonEncode(_currentUser!.toJson()));
         return true;
       }
       return false;
-    } catch (_) {
+    } catch (e) {
       return false;
     }
   }
