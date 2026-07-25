@@ -20,6 +20,14 @@ class _TakeOrderViewState extends State<TakeOrderView> {
   double _counterValue = 1.0;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TakeOrderViewModel>(context, listen: false).fetchCourierMetrics();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<TakeOrderViewModel>(context);
 
@@ -59,34 +67,6 @@ class _TakeOrderViewState extends State<TakeOrderView> {
           fontSize: 18,
         ),
       ),
-      actions: [
-        // Switch on top right for Step 0, 1, 2
-        if (viewModel.currentStep <= 2)
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Row(
-              children: [
-                Text(
-                  viewModel.isAppActive ? 'ON' : 'OFF',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: viewModel.isAppActive ? const Color(0xFF4CAF50) : Colors.black38,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Switch(
-                  value: viewModel.isAppActive,
-                  onChanged: (val) {
-                    viewModel.toggleAppActivity(val);
-                  },
-                  activeThumbColor: const Color(0xFF4CAF50),
-                  activeTrackColor: const Color(0x334CAF50),
-                ),
-              ],
-            ),
-          ),
-      ],
     );
   }
 
@@ -331,7 +311,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                    icon: Icons.local_shipping_outlined,
                    iconColor: const Color(0xFF0284C7),
                    bgColor: const Color(0xFFE0F2FE),
-                   value: '12',
+                   value: '${viewModel.completedCount}',
                    label: 'Selesai',
                  ),
                ),
@@ -341,7 +321,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                    icon: Icons.account_balance_wallet_outlined,
                    iconColor: const Color(0xFF16A34A),
                    bgColor: const Color(0xFFDCFCE7),
-                   value: 'Rp 150rb',
+                   value: viewModel.formattedEarnings,
                    label: 'Pendapatan',
                  ),
                ),
@@ -351,7 +331,7 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                    icon: Icons.star_rounded,
                    iconColor: const Color(0xFFD97706),
                    bgColor: const Color(0xFFFEF3C7),
-                   value: '4.9',
+                   value: viewModel.courierRating.toStringAsFixed(1),
                    label: 'Rating',
                  ),
                ),

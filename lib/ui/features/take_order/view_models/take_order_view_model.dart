@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../../../data/repositories/auth_repository.dart';
 import '../../../../data/repositories/order_repository.dart';
+import '../../../../data/services/order_service.dart';
 import '../../../../domain/models/order.dart';
 
 class InputItem {
@@ -64,10 +67,17 @@ class TakeOrderViewModel extends ChangeNotifier {
   bool _isSpeakerOn = false;
   bool _isMuted = false;
 
+  // Real DB Performance Metrics
+  int _completedCount = 0;
+  double _totalEarnings = 0.0;
+  double _courierRating = 5.0;
+
   TakeOrderViewModel({
     required this.authRepository,
     required this.orderRepository,
-  });
+  }) {
+    fetchCourierMetrics();
+  }
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -81,6 +91,73 @@ class TakeOrderViewModel extends ChangeNotifier {
   List<ChatMessage> get chatMessages => _chatMessages;
   bool get isSpeakerOn => _isSpeakerOn;
   bool get isMuted => _isMuted;
+
+  int get completedCount => _completedCount;
+  double get totalEarnings => _totalEarnings;
+  double get courierRating => _courierRating;
+
+  String get formattedEarnings {
+    if (_totalEarnings >= 1000000) {
+      final val = _totalEarnings / 1000000;
+      return 'Rp ${val.toStringAsFixed(1).replaceAll('.0', '')}jt';
+    } else if (_totalEarnings >= 1000) {
+      final val = _totalEarnings / 1000;
+      return 'Rp ${val.toInt()}rb';
+    }
+    return 'Rp ${_totalEarnings.toInt()}';
+  }
+
+  Future<void> fetchCourierMetrics() async {
+    final token = authRepository.token;
+    final currentUserId = authRepository.currentUser?.id;
+    if (token == null) return;
+
+    try {
+      // 1. Fetch courier's assigned orders
+      final orders = await orderRepository.getOrders(available: false, token: token);
+      
+      int count = 0;
+      double earnings = 0.0;
+
+      for (var order in orders) {
+        final status = order.status.toLowerCase();
+        if (status == 'selesai' || status == 'completed' || status == 'done') {
+          count++;
+          earnings += order.totalPrice;
+        }
+      }
+
+      _completedCount = count;
+      _totalEarnings = earnings;
+
+      // 2. Fetch rating for current courier
+      if (currentUserId != null) {
+        try {
+          final url = Uri.parse('${OrderService.baseUrl}/ratings/courier/$currentUserId');
+          final response = await http.get(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          );
+          if (response.statusCode == 200) {
+            final body = jsonDecode(response.body);
+            final List<dynamic> ratingsData = body['data'] ?? [];
+            if (ratingsData.isNotEmpty) {
+              double sum = 0.0;
+              for (var r in ratingsData) {
+                sum += (r['rating'] as num).toDouble();
+              }
+              _courierRating = sum / ratingsData.length;
+            }
+          }
+        } catch (_) {}
+      }
+
+      notifyListeners();
+    } catch (_) {}
+  }
 
   double get localTotalPrice {
     double total = 0;
