@@ -179,36 +179,54 @@ class _HomeViewState extends State<HomeView> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        // Online Status Pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF22C55E),
-                                ),
+                        // Online Status Pill (Dynamic DB Synchronization)
+                        Builder(
+                          builder: (context) {
+                            String statusText = 'Status: Available / Siap Tugas';
+                            Color statusColor = const Color(0xFF22C55E);
+
+                            if (homeViewModel.hasActiveOrder && homeViewModel.activeOrder != null) {
+                              final st = homeViewModel.activeOrder!.status.toLowerCase();
+                              if (st.contains('delivering')) {
+                                statusText = 'Status: Mengantar Order #${homeViewModel.activeOrder!.id}';
+                                statusColor = const Color(0xFF3B82F6); // Blue
+                              } else {
+                                statusText = 'Status: Menjemput Order #${homeViewModel.activeOrder!.id}';
+                                statusColor = const Color(0xFFF59E0B); // Amber
+                              }
+                            }
+
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Status: Siap Antar / Jemput',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: statusColor,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    statusText,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -469,7 +487,7 @@ class _HomeViewState extends State<HomeView> {
                                   elevation: 0,
                                 ),
                                 child: const Text(
-                                  'Ambil Pesanan',
+                                  'Cari & Jemput Pesanan',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
