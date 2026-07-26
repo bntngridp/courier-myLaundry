@@ -2,16 +2,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../view_models/take_order_view_model.dart';
+import '../../../../data/repositories/auth_repository.dart';
+import '../../../../data/services/call_signaling_service.dart';
 
 class CallView extends StatefulWidget {
-  final String phoneNumber;
+  final int targetUserId;
+  final int orderId;
   final String customerName;
+  final String phoneNumber;
 
   const CallView({
     super.key,
-    this.phoneNumber = '',
+    this.targetUserId = 0,
+    this.orderId = 0,
     this.customerName = 'Pelanggan',
+    this.phoneNumber = '',
   });
 
   @override
@@ -19,28 +24,84 @@ class CallView extends StatefulWidget {
 }
 
 class _CallViewState extends State<CallView> {
+  final CallSignalingService _signalingService = CallSignalingService();
+  StreamSubscription<CallMessage>? _subscription;
+
   Timer? _timer;
   int _secondsElapsed = 0;
   bool _isCallConnected = false;
+  String _statusText = 'Memanggil (In-App)...';
+  bool _isSpeakerOn = false;
+  bool _isMuted = false;
 
   @override
   void initState() {
     super.initState();
-    // Launch native phone call if phone number is provided
-    _triggerNativeCall();
+    _initSignalingAndCall();
+  }
 
-    // Simulate call timer
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
+  Future<void> _initSignalingAndCall() async {
+    final authRepo = Provider.of<AuthRepository>(context, listen: false);
+    final token = authRepo.token;
+    final currentUserName = authRepo.currentUser?.username ?? 'Kurir myLaundry';
+
+    if (token != null) {
+      await _signalingService.connect(token);
+
+      _subscription = _signalingService.onMessage.listen((msg) {
+        if (!mounted) return;
+
+        if (msg.type == 'CALL_ANSWER') {
+          setState(() {
+            _isCallConnected = true;
+            _statusText = 'Terhubung';
+          });
+          _startTimer();
+        } else if (msg.type == 'CALL_REJECT') {
+          setState(() {
+            _statusText = 'Panggilan Ditolak';
+          });
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) Navigator.pop(context);
+          });
+        } else if (msg.type == 'CALL_END') {
+          if (mounted) Navigator.pop(context);
+        }
+      });
+
+      if (widget.targetUserId > 0) {
+        _signalingService.startCall(
+          targetUserId: widget.targetUserId,
+          orderId: widget.orderId,
+          callerName: currentUserName,
+        );
+      }
+    }
+
+    // Fallback timer if target auto-connects or testing
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && !_isCallConnected && _statusText.contains('Memanggil')) {
         setState(() {
           _isCallConnected = true;
+          _statusText = 'Terhubung (In-App Voice)';
         });
         _startTimer();
       }
     });
   }
 
-  Future<void> _triggerNativeCall() async {
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          _secondsElapsed++;
+        });
+      }
+    });
+  }
+
+  Future<void> _triggerNativeFallback() async {
     if (widget.phoneNumber.trim().isNotEmpty) {
       final cleanNumber = widget.phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
       final uri = Uri.parse('tel:$cleanNumber');
@@ -52,19 +113,22 @@ class _CallViewState extends State<CallView> {
     }
   }
 
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _secondsElapsed++;
-        });
-      }
-    });
+  void _endCall() {
+    if (widget.targetUserId > 0) {
+      _signalingService.endCall(
+        targetUserId: widget.targetUserId,
+        orderId: widget.orderId,
+      );
+    }
+    _signalingService.disconnect();
+    if (mounted) Navigator.pop(context);
   }
 
   @override
   void dispose() {
+    _subscription?.cancel();
     _timer?.cancel();
+    _signalingService.disconnect();
     super.dispose();
   }
 
@@ -76,10 +140,7 @@ class _CallViewState extends State<CallView> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<TakeOrderViewModel>(context, listen: false);
-    final displayName = widget.customerName.isNotEmpty
-        ? widget.customerName
-        : (viewModel.currentOrder?.customer?.username ?? 'Pelanggan');
+    final displayName = widget.customerName.isNotEmpty ? widget.customerName : 'Pelanggan';
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -95,11 +156,11 @@ class _CallViewState extends State<CallView> {
                 children: [
                   const SizedBox(height: 48),
                   Text(
-                    _isCallConnected ? 'Menghubungkan...' : 'Memanggil...',
+                    _statusText,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.black38,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.black45,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -111,22 +172,40 @@ class _CallViewState extends State<CallView> {
                       color: Color(0xFF0B1739),
                     ),
                   ),
-                  if (widget.phoneNumber.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      widget.phoneNumber,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.shield_outlined, size: 14, color: Color(0xFF10B981)),
+                            SizedBox(width: 4),
+                            Text(
+                              'In-App Account Call',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF10B981),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                   if (_isCallConnected) ...[
                     const SizedBox(height: 12),
                     Text(
                       _formatDuration(_secondsElapsed),
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF0007B0),
                       ),
@@ -168,21 +247,19 @@ class _CallViewState extends State<CallView> {
               Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       // Speaker Toggle Button
                       Column(
                         children: [
                           GestureDetector(
-                            onTap: () => viewModel.toggleSpeaker(),
+                            onTap: () => setState(() => _isSpeakerOn = !_isSpeakerOn),
                             child: Container(
                               width: 58,
                               height: 58,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: viewModel.isSpeakerOn
-                                    ? const Color(0xFF0007B0)
-                                    : Colors.white,
+                                color: _isSpeakerOn ? const Color(0xFF0007B0) : Colors.white,
                                 border: Border.all(color: const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
@@ -192,8 +269,8 @@ class _CallViewState extends State<CallView> {
                                 ],
                               ),
                               child: Icon(
-                                viewModel.isSpeakerOn ? Icons.volume_up : Icons.volume_off,
-                                color: viewModel.isSpeakerOn ? Colors.white : Colors.black54,
+                                _isSpeakerOn ? Icons.volume_up : Icons.volume_off,
+                                color: _isSpeakerOn ? Colors.white : Colors.black54,
                                 size: 24,
                               ),
                             ),
@@ -209,20 +286,18 @@ class _CallViewState extends State<CallView> {
                           ),
                         ],
                       ),
-                      const SizedBox(width: 48),
+
                       // Mute Toggle Button
                       Column(
                         children: [
                           GestureDetector(
-                            onTap: () => viewModel.toggleMute(),
+                            onTap: () => setState(() => _isMuted = !_isMuted),
                             child: Container(
                               width: 58,
                               height: 58,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: viewModel.isMuted
-                                    ? const Color(0xFF0007B0)
-                                    : Colors.white,
+                                color: _isMuted ? const Color(0xFF0007B0) : Colors.white,
                                 border: Border.all(color: const Color(0xFFE2E8F0)),
                                 boxShadow: [
                                   BoxShadow(
@@ -232,8 +307,8 @@ class _CallViewState extends State<CallView> {
                                 ],
                               ),
                               child: Icon(
-                                viewModel.isMuted ? Icons.mic_off : Icons.mic,
-                                color: viewModel.isMuted ? Colors.white : Colors.black54,
+                                _isMuted ? Icons.mic_off : Icons.mic,
+                                color: _isMuted ? Colors.white : Colors.black54,
                                 size: 24,
                               ),
                             ),
@@ -249,14 +324,51 @@ class _CallViewState extends State<CallView> {
                           ),
                         ],
                       ),
+
+                      // Native Dialer Option Button
+                      if (widget.phoneNumber.isNotEmpty)
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: _triggerNativeFallback,
+                              child: Container(
+                                width: 58,
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 10,
+                                    )
+                                  ],
+                                ),
+                                child: const Icon(
+                                  Icons.dialpad_rounded,
+                                  color: Color(0xFF0007B0),
+                                  size: 24,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Pulsa HP',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
                   const SizedBox(height: 48),
                   // Hang Up Button
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: _endCall,
                     child: Container(
                       width: 68,
                       height: 68,

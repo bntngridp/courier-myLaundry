@@ -311,6 +311,8 @@ class _DeliveryViewState extends State<DeliveryView> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => CallView(
+                              targetUserId: viewModel.currentOrder?.customer?.id ?? 0,
+                              orderId: viewModel.currentOrder?.id ?? 0,
                               phoneNumber: viewModel.currentOrder?.address?.phoneNumber ?? '',
                               customerName: viewModel.currentOrder?.customer?.username ?? 'Pelanggan',
                             ),
