@@ -362,7 +362,7 @@ class _DeliveryViewState extends State<DeliveryView> {
               onTap: () {
                 // Simulate camera photo upload with a mock image URL
                 viewModel.setUploadedImage(
-                  'https://images.unsplash.com/photo-1545155998-0c67ff433434?auto=format&fit=crop&q=80&w=300',
+                  'https://picsum.photos/seed/delivery/300/300',
                 );
               },
               child: Container(
