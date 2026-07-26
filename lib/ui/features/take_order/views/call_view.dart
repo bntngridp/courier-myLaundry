@@ -1,10 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../view_models/take_order_view_model.dart';
 
 class CallView extends StatefulWidget {
-  const CallView({super.key});
+  final String phoneNumber;
+  final String customerName;
+
+  const CallView({
+    super.key,
+    this.phoneNumber = '',
+    this.customerName = 'Pelanggan',
+  });
 
   @override
   State<CallView> createState() => _CallViewState();
@@ -18,7 +26,10 @@ class _CallViewState extends State<CallView> {
   @override
   void initState() {
     super.initState();
-    // Simulate call connecting after 2 seconds
+    // Launch native phone call if phone number is provided
+    _triggerNativeCall();
+
+    // Simulate call timer
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -27,6 +38,18 @@ class _CallViewState extends State<CallView> {
         _startTimer();
       }
     });
+  }
+
+  Future<void> _triggerNativeCall() async {
+    if (widget.phoneNumber.trim().isNotEmpty) {
+      final cleanNumber = widget.phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+      final uri = Uri.parse('tel:$cleanNumber');
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      } catch (_) {}
+    }
   }
 
   void _startTimer() {
@@ -53,8 +76,10 @@ class _CallViewState extends State<CallView> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<TakeOrderViewModel>(context);
-    final customerName = viewModel.currentOrder?.customer?.username ?? 'Nidu Askandar';
+    final viewModel = Provider.of<TakeOrderViewModel>(context, listen: false);
+    final displayName = widget.customerName.isNotEmpty
+        ? widget.customerName
+        : (viewModel.currentOrder?.customer?.username ?? 'Pelanggan');
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -79,13 +104,23 @@ class _CallViewState extends State<CallView> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    customerName,
+                    displayName,
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF0B1739),
                     ),
                   ),
+                  if (widget.phoneNumber.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      widget.phoneNumber,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
                   if (_isCallConnected) ...[
                     const SizedBox(height: 12),
                     Text(
@@ -123,7 +158,7 @@ class _CallViewState extends State<CallView> {
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    customerName.isNotEmpty ? customerName[0].toUpperCase() : 'C',
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'C',
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 64),
                   ),
                 ),

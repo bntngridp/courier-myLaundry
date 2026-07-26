@@ -1,11 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../view_models/take_order_view_model.dart';
+import '../../../../data/repositories/auth_repository.dart';
+import '../../../../data/services/chat_service.dart';
+import '../../../../domain/models/chat_message.dart';
 import 'call_view.dart';
 
 class ChatView extends StatefulWidget {
-  const ChatView({super.key});
+  final int orderId;
+  final String customerName;
+  final String phoneNumber;
+
+  const ChatView({
+    super.key,
+    this.orderId = 0,
+    this.customerName = 'Pelanggan',
+    this.phoneNumber = '',
+  });
 
   @override
   State<ChatView> createState() => _ChatViewState();
@@ -14,16 +25,60 @@ class ChatView extends StatefulWidget {
 class _ChatViewState extends State<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final ChatService _chatService = ChatService();
+
+  List<ChatMessageModel> _messages = [];
+  bool _isLoadingMessages = true;
+  bool _isSending = false;
+  Timer? _pollTimer;
 
   bool _isRecording = false;
   int _recordSeconds = 0;
-  Timer? _timer;
+  Timer? _recordTimer;
   int? _playingIndex;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+    _fetchMessages();
+    // Poll for new messages every 3 seconds
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _fetchMessages(silent: true));
+  }
+
+  Future<void> _fetchMessages({bool silent = false}) async {
+    final authRepo = Provider.of<AuthRepository>(context, listen: false);
+    final token = authRepo.token;
+    if (token == null || widget.orderId == 0) {
+      if (mounted && !silent) {
+        setState(() {
+          _isLoadingMessages = false;
+        });
+      }
+      return;
+    }
+
+    try {
+      final fetched = await _chatService.getOrderChatMessages(
+        orderId: widget.orderId,
+        token: token,
+      );
+      if (mounted) {
+        final bool hadNewMessages = fetched.length > _messages.length;
+        setState(() {
+          _messages = fetched;
+          _isLoadingMessages = false;
+        });
+        if (hadNewMessages) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+        }
+      }
+    } catch (_) {
+      if (mounted && !silent) {
+        setState(() {
+          _isLoadingMessages = false;
+        });
+      }
+    }
   }
 
   void _scrollToBottom() {
@@ -36,13 +91,51 @@ class _ChatViewState extends State<ChatView> {
     }
   }
 
+  Future<void> _sendTextMessage() async {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || _isSending) return;
+
+    final authRepo = Provider.of<AuthRepository>(context, listen: false);
+    final token = authRepo.token;
+    if (token == null || widget.orderId == 0) return;
+
+    setState(() {
+      _isSending = true;
+    });
+
+    try {
+      final newMsg = await _chatService.sendChatMessage(
+        orderId: widget.orderId,
+        message: text,
+        token: token,
+      );
+      _messageController.clear();
+      if (mounted) {
+        setState(() {
+          _messages.add(newMsg);
+          _isSending = false;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+        );
+      }
+    }
+  }
+
   void _startRecording() {
     setState(() {
       _isRecording = true;
       _recordSeconds = 0;
     });
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+    _recordTimer?.cancel();
+    _recordTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (mounted) {
         setState(() {
           _recordSeconds++;
@@ -51,19 +144,35 @@ class _ChatViewState extends State<ChatView> {
     });
   }
 
-  void _stopAndSendRecording(TakeOrderViewModel viewModel) {
-    _timer?.cancel();
+  Future<void> _stopAndSendRecording() async {
+    _recordTimer?.cancel();
     final durationStr = _formatDuration(_recordSeconds);
     setState(() {
       _isRecording = false;
       _recordSeconds = 0;
     });
-    viewModel.sendVoiceMessage(durationStr);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+
+    final authRepo = Provider.of<AuthRepository>(context, listen: false);
+    final token = authRepo.token;
+    if (token == null || widget.orderId == 0) return;
+
+    try {
+      final newMsg = await _chatService.sendChatMessage(
+        orderId: widget.orderId,
+        message: '🎙️ Pesan Suara ($durationStr)',
+        token: token,
+      );
+      if (mounted) {
+        setState(() {
+          _messages.add(newMsg);
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+      }
+    } catch (_) {}
   }
 
   void _cancelRecording() {
-    _timer?.cancel();
+    _recordTimer?.cancel();
     setState(() {
       _isRecording = false;
       _recordSeconds = 0;
@@ -76,9 +185,17 @@ class _ChatViewState extends State<ChatView> {
     return '$m:$s';
   }
 
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour > 12 ? dt.hour - 12 : (dt.hour == 0 ? 12 : dt.hour);
+    final ampm = dt.hour >= 12 ? 'pm' : 'am';
+    final minute = dt.minute.toString().padLeft(2, '0');
+    return '$hour:$minute $ampm';
+  }
+
   @override
   void dispose() {
-    _timer?.cancel();
+    _pollTimer?.cancel();
+    _recordTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -86,8 +203,9 @@ class _ChatViewState extends State<ChatView> {
 
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<TakeOrderViewModel>(context);
-    final customerName = viewModel.currentOrder?.customer?.username ?? 'Nidu Askandar';
+    final authRepo = Provider.of<AuthRepository>(context, listen: false);
+    final currentUserId = authRepo.currentUser?.id;
+    final displayName = widget.customerName.isNotEmpty ? widget.customerName : 'Pelanggan';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -114,17 +232,28 @@ class _ChatViewState extends State<ChatView> {
               ),
               alignment: Alignment.center,
               child: Text(
-                customerName.isNotEmpty ? customerName[0].toUpperCase() : 'C',
+                displayName.isNotEmpty ? displayName[0].toUpperCase() : 'C',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
             const SizedBox(width: 12),
-            Text(
-              customerName,
-              style: const TextStyle(
-                color: Color(0xFF0B1739),
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      color: Color(0xFF0B1739),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    widget.orderId > 0 ? 'Pesanan #${widget.orderId}' : 'Chat Pelanggan',
+                    style: const TextStyle(color: Colors.black45, fontSize: 11),
+                  ),
+                ],
               ),
             ),
           ],
@@ -135,57 +264,81 @@ class _ChatViewState extends State<ChatView> {
           children: [
             // Chat bubble list
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.all(20),
-                itemCount: viewModel.chatMessages.length,
-                itemBuilder: (context, index) {
-                  final message = viewModel.chatMessages[index];
-                  final isMe = message.isMe;
+              child: _isLoadingMessages
+                  ? const Center(child: CircularProgressIndicator())
+                  : _messages.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.chat_bubble_outline, size: 48, color: Colors.black26),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Belum ada obrolan.',
+                                style: TextStyle(color: Colors.black45, fontSize: 14),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Kirim pesan pertama ke $displayName',
+                                style: TextStyle(color: Colors.black38, fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(20),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final msg = _messages[index];
+                            final isMe = (msg.senderRole == 'courier') ||
+                                (currentUserId != null && msg.senderId == currentUserId);
+                            final isAudio = msg.message.contains('🎙️ Pesan Suara');
 
-                  return Align(
-                    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.78,
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isMe ? const Color(0xFF0007B0) : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.only(
-                          topLeft: const Radius.circular(16),
-                          topRight: const Radius.circular(16),
-                          bottomLeft: Radius.circular(isMe ? 16 : 0),
-                          bottomRight: Radius.circular(isMe ? 0 : 16),
+                            return Align(
+                              alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                constraints: BoxConstraints(
+                                  maxWidth: MediaQuery.of(context).size.width * 0.78,
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: isMe ? const Color(0xFF0007B0) : const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.only(
+                                    topLeft: const Radius.circular(16),
+                                    topRight: const Radius.circular(16),
+                                    bottomLeft: Radius.circular(isMe ? 16 : 0),
+                                    bottomRight: Radius.circular(isMe ? 0 : 16),
+                                  ),
+                                ),
+                                child: isAudio
+                                    ? _buildAudioBubble(msg, index, isMe)
+                                    : Column(
+                                        crossAxisAlignment:
+                                            isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            msg.message,
+                                            style: TextStyle(
+                                              color: isMe ? Colors.white : const Color(0xFF0B1739),
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            _formatTime(msg.sentAt),
+                                            style: TextStyle(
+                                              color: isMe ? Colors.white60 : Colors.black38,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                      child: message.isAudio
-                          ? _buildAudioBubble(message, index, isMe)
-                          : Column(
-                              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  message.text,
-                                  style: TextStyle(
-                                    color: isMe ? Colors.white : const Color(0xFF0B1739),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  message.timestamp,
-                                  style: TextStyle(
-                                    color: isMe ? Colors.white60 : Colors.black38,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                    ),
-                  );
-                },
-              ),
             ),
 
             // Bottom input bar
@@ -202,8 +355,8 @@ class _ChatViewState extends State<ChatView> {
                 ],
               ),
               child: _isRecording
-                  ? _buildRecordingBar(viewModel)
-                  : _buildStandardInputBar(viewModel),
+                  ? _buildRecordingBar()
+                  : _buildStandardInputBar(),
             ),
           ],
         ),
@@ -211,7 +364,7 @@ class _ChatViewState extends State<ChatView> {
     );
   }
 
-  Widget _buildAudioBubble(ChatMessage message, int index, bool isMe) {
+  Widget _buildAudioBubble(ChatMessageModel message, int index, bool isMe) {
     final isPlaying = _playingIndex == index;
     return Column(
       crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -244,39 +397,19 @@ class _ChatViewState extends State<ChatView> {
               ),
             ),
             const SizedBox(width: 10),
-            // Audio Waveform Visualization
-            Row(
-              children: List.generate(12, (i) {
-                final heights = [12.0, 22.0, 16.0, 28.0, 10.0, 24.0, 18.0, 30.0, 14.0, 20.0, 26.0, 12.0];
-                final h = heights[i % heights.length];
-                final active = isPlaying && (i % 3 == 0);
-                return Container(
-                  width: 3,
-                  height: active ? h + 4 : h,
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? (active ? Colors.white : Colors.white70)
-                        : (active ? const Color(0xFF0007B0) : Colors.black26),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(width: 10),
             Text(
-              message.audioDuration ?? '00:05',
+              message.message,
               style: TextStyle(
                 color: isMe ? Colors.white : const Color(0xFF0B1739),
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
         const SizedBox(height: 6),
         Text(
-          message.timestamp,
+          _formatTime(message.sentAt),
           style: TextStyle(
             color: isMe ? Colors.white60 : Colors.black38,
             fontSize: 10,
@@ -286,7 +419,7 @@ class _ChatViewState extends State<ChatView> {
     );
   }
 
-  Widget _buildRecordingBar(TakeOrderViewModel viewModel) {
+  Widget _buildRecordingBar() {
     return Row(
       children: [
         IconButton(
@@ -345,7 +478,7 @@ class _ChatViewState extends State<ChatView> {
         ),
         const SizedBox(width: 12),
         GestureDetector(
-          onTap: () => _stopAndSendRecording(viewModel),
+          onTap: _stopAndSendRecording,
           child: Container(
             width: 48,
             height: 48,
@@ -360,7 +493,7 @@ class _ChatViewState extends State<ChatView> {
     );
   }
 
-  Widget _buildStandardInputBar(TakeOrderViewModel viewModel) {
+  Widget _buildStandardInputBar() {
     return Row(
       children: [
         // Text field input
@@ -383,26 +516,19 @@ class _ChatViewState extends State<ChatView> {
                       hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
                       border: InputBorder.none,
                     ),
-                    onSubmitted: (value) {
-                      if (value.trim().isNotEmpty) {
-                        viewModel.sendChatMessage(value);
-                        _messageController.clear();
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                      }
-                    },
+                    onSubmitted: (_) => _sendTextMessage(),
                   ),
                 ),
                 if (_messageController.text.trim().isNotEmpty)
                   IconButton(
-                    icon: const Icon(Icons.send, color: Color(0xFF0007B0), size: 18),
-                    onPressed: () {
-                      final text = _messageController.text;
-                      if (text.trim().isNotEmpty) {
-                        viewModel.sendChatMessage(text);
-                        _messageController.clear();
-                        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                      }
-                    },
+                    icon: _isSending
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.send, color: Color(0xFF0007B0), size: 18),
+                    onPressed: _sendTextMessage,
                   )
                 else
                   IconButton(
@@ -420,7 +546,12 @@ class _ChatViewState extends State<ChatView> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CallView()),
+              MaterialPageRoute(
+                builder: (context) => CallView(
+                  phoneNumber: widget.phoneNumber,
+                  customerName: widget.customerName,
+                ),
+              ),
             );
           },
           child: Container(

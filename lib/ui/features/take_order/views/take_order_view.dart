@@ -826,7 +826,13 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const ChatView()),
+                            MaterialPageRoute(
+                              builder: (context) => ChatView(
+                                orderId: viewModel.currentOrder?.id ?? 0,
+                                customerName: viewModel.currentOrder?.customer?.username ?? 'Pelanggan',
+                                phoneNumber: viewModel.currentOrder?.address?.phoneNumber ?? '',
+                              ),
+                            ),
                           );
                         },
                         child: Container(
@@ -853,7 +859,13 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (context) => const ChatView()),
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatView(
+                                        orderId: viewModel.currentOrder?.id ?? 0,
+                                        customerName: viewModel.currentOrder?.customer?.username ?? 'Pelanggan',
+                                        phoneNumber: viewModel.currentOrder?.address?.phoneNumber ?? '',
+                                      ),
+                                    ),
                                   );
                                 },
                               ),
@@ -867,7 +879,12 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const CallView()),
+                          MaterialPageRoute(
+                            builder: (context) => CallView(
+                              phoneNumber: viewModel.currentOrder?.address?.phoneNumber ?? '',
+                              customerName: viewModel.currentOrder?.customer?.username ?? 'Pelanggan',
+                            ),
+                          ),
                         );
                       },
                       child: Container(
