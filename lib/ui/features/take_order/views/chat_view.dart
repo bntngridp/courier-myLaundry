@@ -40,6 +40,42 @@ class _ChatViewState extends State<ChatView> {
   int _recordSeconds = 0;
   Timer? _recordTimer;
   int? _playingIndex;
+  Timer? _audioPlaybackTimer;
+  int _audioPlaybackProgress = 0;
+
+  void _toggleAudioPlayback(int index) {
+    if (_playingIndex == index) {
+      _audioPlaybackTimer?.cancel();
+      setState(() {
+        _playingIndex = null;
+        _audioPlaybackProgress = 0;
+      });
+    } else {
+      _audioPlaybackTimer?.cancel();
+      setState(() {
+        _playingIndex = index;
+        _audioPlaybackProgress = 0;
+      });
+      _audioPlaybackTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+        if (mounted && _playingIndex == index) {
+          setState(() {
+            _audioPlaybackProgress++;
+          });
+          if (_audioPlaybackProgress >= 8) {
+            _audioPlaybackTimer?.cancel();
+            if (mounted) {
+              setState(() {
+                _playingIndex = null;
+                _audioPlaybackProgress = 0;
+              });
+            }
+          }
+        } else {
+          timer.cancel();
+        }
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -314,6 +350,7 @@ class _ChatViewState extends State<ChatView> {
       final newMsg = await _chatService.sendChatMessage(
         orderId: widget.orderId,
         message: '🎙️ Pesan Suara ($durationStr)',
+        messageType: 'AUDIO',
         token: token,
       );
       if (mounted) {
@@ -350,6 +387,7 @@ class _ChatViewState extends State<ChatView> {
   void dispose() {
     _pollTimer?.cancel();
     _recordTimer?.cancel();
+    _audioPlaybackTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -530,22 +568,64 @@ class _ChatViewState extends State<ChatView> {
     Widget imageWidget;
     if (message.imageUrl.startsWith('data:image')) {
       try {
-        final base64Str = message.imageUrl.split(',').last;
+        final base64Str = message.imageUrl.split(',').last.replaceAll(RegExp(r'\s+'), '');
         final Uint8List bytes = base64Decode(base64Str);
-        imageWidget = Image.memory(bytes, fit: BoxFit.cover);
+        imageWidget = Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              height: 160,
+              color: Colors.black12,
+              alignment: Alignment.center,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.image_outlined, color: Colors.black45, size: 36),
+                  SizedBox(height: 4),
+                  Text('Foto Pesanan', style: TextStyle(color: Colors.black54, fontSize: 12)),
+                ],
+              ),
+            );
+          },
+        );
       } catch (_) {
-        imageWidget = const Icon(Icons.broken_image, size: 48, color: Colors.grey);
+        imageWidget = Container(
+          height: 160,
+          color: Colors.black12,
+          alignment: Alignment.center,
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.image_outlined, color: Colors.black45, size: 36),
+              SizedBox(height: 4),
+              Text('Foto Pesanan', style: TextStyle(color: Colors.black54, fontSize: 12)),
+            ],
+          ),
+        );
       }
     } else if (message.imageUrl.startsWith('http')) {
-      imageWidget = Image.network(message.imageUrl, fit: BoxFit.cover);
+      imageWidget = Image.network(
+        message.imageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 160,
+            color: Colors.black12,
+            alignment: Alignment.center,
+            child: const Icon(Icons.broken_image, size: 36, color: Colors.black38),
+          );
+        },
+      );
     } else {
       imageWidget = Container(
         padding: const EdgeInsets.all(12),
+        color: isMe ? const Color(0xFF0007B0) : const Color(0xFFF1F5F9),
         child: Row(
-          children: const [
-            Icon(Icons.image, color: Colors.white),
-            SizedBox(width: 8),
-            Text('Foto Pesanan', style: TextStyle(color: Colors.white, fontSize: 13)),
+          children: [
+            Icon(Icons.image, color: isMe ? Colors.white : const Color(0xFF0007B0)),
+            const SizedBox(width: 8),
+            Text('Foto Pesanan', style: TextStyle(color: isMe ? Colors.white : const Color(0xFF0B1739), fontSize: 13)),
           ],
         ),
       );
@@ -611,8 +691,8 @@ class _ChatViewState extends State<ChatView> {
                     color: Colors.black54,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.videocam, color: Colors.white, size: 14),
                       SizedBox(width: 4),
                       Text('Video Pesanan', style: TextStyle(color: Colors.white, fontSize: 11)),
@@ -646,18 +726,10 @@ class _ChatViewState extends State<ChatView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (_playingIndex == index) {
-                    _playingIndex = null;
-                  } else {
-                    _playingIndex = index;
-                  }
-                });
-              },
+              onTap: () => _toggleAudioPlayback(index),
               child: Container(
-                width: 36,
-                height: 36,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: isMe ? Colors.white : const Color(0xFF0007B0),
@@ -665,18 +737,41 @@ class _ChatViewState extends State<ChatView> {
                 child: Icon(
                   isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
                   color: isMe ? const Color(0xFF0007B0) : Colors.white,
-                  size: 22,
+                  size: 24,
                 ),
               ),
             ),
             const SizedBox(width: 10),
-            Text(
-              message.message,
-              style: TextStyle(
-                color: isMe ? Colors.white : const Color(0xFF0B1739),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  message.message,
+                  style: TextStyle(
+                    color: isMe ? Colors.white : const Color(0xFF0B1739),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: List.generate(10, (i) {
+                    final isActive = isPlaying && (i <= (_audioPlaybackProgress % 10));
+                    final h = (i % 3 == 0) ? 14.0 : ((i % 2 == 0) ? 20.0 : 10.0);
+                    return Container(
+                      width: 3,
+                      height: h,
+                      margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                      decoration: BoxDecoration(
+                        color: isMe
+                            ? (isActive ? Colors.greenAccent : Colors.white70)
+                            : (isActive ? const Color(0xFF0007B0) : Colors.black26),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
           ],
         ),
