@@ -27,6 +27,8 @@ class ChatView extends StatefulWidget {
 
 class _ChatViewState extends State<ChatView> {
   final TextEditingController _messageController = TextEditingController();
+  final FocusNode _messageFocusNode = FocusNode();
+  final ValueNotifier<bool> _hasTextNotifier = ValueNotifier<bool>(false);
   final ScrollController _scrollController = ScrollController();
   final ChatService _chatService = ChatService();
   final ImagePicker _picker = ImagePicker();
@@ -83,6 +85,21 @@ class _ChatViewState extends State<ChatView> {
     _fetchMessages();
     // Poll for new messages every 3 seconds
     _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _fetchMessages(silent: true));
+
+    _messageController.addListener(() {
+      final hasText = _messageController.text.trim().isNotEmpty;
+      if (_hasTextNotifier.value != hasText) {
+        _hasTextNotifier.value = hasText;
+      }
+    });
+
+    _messageFocusNode.addListener(() {
+      if (_messageFocusNode.hasFocus) {
+        Future.delayed(const Duration(milliseconds: 250), () {
+          _scrollToBottom(force: true);
+        });
+      }
+    });
   }
 
   bool _areMessagesEqual(List<ChatMessageModel> a, List<ChatMessageModel> b) {
@@ -425,6 +442,8 @@ class _ChatViewState extends State<ChatView> {
     _recordTimer?.cancel();
     _audioPlaybackTimer?.cancel();
     _messageController.dispose();
+    _messageFocusNode.dispose();
+    _hasTextNotifier.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -920,7 +939,7 @@ class _ChatViewState extends State<ChatView> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    onChanged: (_) => setState(() {}),
+                    focusNode: _messageFocusNode,
                     decoration: const InputDecoration(
                       hintText: 'Ketik pesan...',
                       hintStyle: TextStyle(color: Colors.black38, fontSize: 13),
@@ -929,23 +948,27 @@ class _ChatViewState extends State<ChatView> {
                     onSubmitted: (_) => _sendTextMessage(),
                   ),
                 ),
-                if (_messageController.text.trim().isNotEmpty)
-                  IconButton(
-                    icon: _isSending
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _hasTextNotifier,
+                  builder: (context, hasText, _) {
+                    return hasText
+                        ? IconButton(
+                            icon: _isSending
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : const Icon(Icons.send, color: Color(0xFF0007B0), size: 18),
+                            onPressed: _sendTextMessage,
                           )
-                        : const Icon(Icons.send, color: Color(0xFF0007B0), size: 18),
-                    onPressed: _sendTextMessage,
-                  )
-                else
-                  IconButton(
-                    icon: const Icon(Icons.mic_rounded, color: Color(0xFF0007B0), size: 22),
-                    onPressed: _startRecording,
-                    tooltip: 'Rekam Suara',
-                  ),
+                        : IconButton(
+                            icon: const Icon(Icons.mic_rounded, color: Color(0xFF0007B0), size: 22),
+                            onPressed: _startRecording,
+                            tooltip: 'Rekam Suara',
+                          );
+                  },
+                ),
               ],
             ),
           ),
