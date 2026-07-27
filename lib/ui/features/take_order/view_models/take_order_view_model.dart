@@ -119,16 +119,23 @@ class TakeOrderViewModel extends ChangeNotifier {
       int count = 0;
       double earnings = 0.0;
 
+      OrderModel? activeAssignedOrder;
       for (var order in orders) {
         final status = order.status.toLowerCase();
         if (status == 'selesai' || status == 'completed' || status == 'done') {
           count++;
           earnings += order.totalPrice;
+        } else if (status != 'cancelled') {
+          activeAssignedOrder = order;
         }
       }
 
       _completedCount = count;
       _totalEarnings = earnings;
+
+      if (_currentOrder == null && activeAssignedOrder != null) {
+        resumeActiveOrder(activeAssignedOrder);
+      }
 
       // 2. Fetch rating for current courier
       if (currentUserId != null) {
