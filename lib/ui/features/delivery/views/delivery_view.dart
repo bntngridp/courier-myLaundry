@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../view_models/delivery_view_model.dart';
 import '../../../shared/widgets/app_snackbar.dart';
+import '../../../shared/widgets/slide_to_confirm_button.dart';
 import '../../take_order/views/chat_view.dart';
 import '../../take_order/views/call_view.dart';
 
@@ -229,24 +230,10 @@ class _DeliveryViewState extends State<DeliveryView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => viewModel.goToUploadStep(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0007B0),
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Telah Sampai',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                SlideToConfirmButton(
+                  text: 'Geser saat Telah Sampai',
+                  icon: Icons.location_on_rounded,
+                  onConfirmed: () => viewModel.goToUploadStep(),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -440,46 +427,22 @@ class _DeliveryViewState extends State<DeliveryView> {
               child: const Text('Ambil ulang', style: TextStyle(color: Colors.white, fontSize: 13)),
             ),
           ),
-          const SizedBox(height: 36),
-          ElevatedButton(
-            onPressed: viewModel.isLoading
-                ? null
-                : () async {
-                    final success = await viewModel.completeDelivery();
-                    if (success && context.mounted) {
-                      AppSnackBar.showSuccess(context, 'Pengantaran berhasil diselesaikan');
-                      Navigator.pop(context);
-                    } else if (context.mounted && viewModel.errorMessage != null) {
-                      AppSnackBar.showError(context, viewModel.errorMessage!);
-                    }
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0007B0),
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 0,
-            ),
-            child: viewModel.isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : const Text(
-                    'Selesai',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+          SlideToConfirmButton(
+            text: 'Geser untuk Selesaikan Pengantaran',
+            isLoading: viewModel.isLoading,
+            icon: Icons.task_alt_rounded,
+            onConfirmed: () async {
+              final success = await viewModel.completeDelivery();
+              if (success && context.mounted) {
+                AppSnackBar.showSuccess(context, 'Pengantaran berhasil diselesaikan');
+                Navigator.pop(context);
+              } else if (context.mounted && viewModel.errorMessage != null) {
+                AppSnackBar.showError(context, viewModel.errorMessage!);
+              }
+            },
           ),
         ],
       ),
     );
   }
 }
-
-

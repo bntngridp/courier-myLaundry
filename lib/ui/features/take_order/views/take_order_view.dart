@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../view_models/take_order_view_model.dart';
 import '../../../shared/widgets/app_snackbar.dart';
+import '../../../shared/widgets/slide_to_confirm_button.dart';
 import 'chat_view.dart';
 import 'call_view.dart';
 
@@ -799,24 +800,10 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => viewModel.goToInputOrder(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0007B0),
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Telah Sampai',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                SlideToConfirmButton(
+                  text: 'Geser saat Telah Sampai',
+                  icon: Icons.location_on_rounded,
+                  onConfirmed: () => viewModel.goToInputOrder(),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -1286,46 +1273,22 @@ class _TakeOrderViewState extends State<TakeOrderView> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: (viewModel.inputItems.isEmpty || viewModel.isLoading)
-                            ? null
-                            : () async {
-                                final success = await viewModel.submitOrderDetails();
-                                if (success && context.mounted) {
-                                  AppSnackBar.showSuccess(context, 'Detail pesanan berhasil disimpan');
-                                } else if (context.mounted && viewModel.errorMessage != null) {
-                                  AppSnackBar.showError(context, viewModel.errorMessage!);
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0007B0),
-                          disabledBackgroundColor: const Color(0xFFE2E8F0),
-                          padding: const EdgeInsets.symmetric(vertical: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: viewModel.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text(
-                                'Lanjut ke Pembayaran',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
+                    SlideToConfirmButton(
+                      text: 'Geser untuk Lanjut ke Pembayaran',
+                      isLoading: viewModel.isLoading,
+                      icon: Icons.arrow_forward_rounded,
+                      onConfirmed: () async {
+                        if (viewModel.inputItems.isEmpty) {
+                          AppSnackBar.showError(context, 'Tambahkan minimal 1 item laundry!');
+                          return;
+                        }
+                        final success = await viewModel.submitOrderDetails();
+                        if (success && context.mounted) {
+                          AppSnackBar.showSuccess(context, 'Detail pesanan berhasil disimpan');
+                        } else if (context.mounted && viewModel.errorMessage != null) {
+                          AppSnackBar.showError(context, viewModel.errorMessage!);
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -1378,33 +1341,11 @@ class _TakeOrderViewState extends State<TakeOrderView> {
             ),
           ),
           const Spacer(),
-          ElevatedButton(
-            onPressed: viewModel.isLoading ? null : () => viewModel.processPayment(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0007B0),
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              elevation: 0,
-            ),
-            child: viewModel.isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Text(
-                    'Selesaikan Pembayaran Tunai',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+          SlideToConfirmButton(
+            text: 'Geser untuk Selesaikan Pembayaran',
+            isLoading: viewModel.isLoading,
+            icon: Icons.payments_rounded,
+            onConfirmed: () => viewModel.processPayment(),
           ),
           const SizedBox(height: 12),
         ],
