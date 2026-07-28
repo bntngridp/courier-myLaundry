@@ -19,6 +19,39 @@ class _TakeOrderViewState extends State<TakeOrderView> {
   String _selectedCategory = 'Cuci Lipat'; // 'Cuci Lipat', 'Cuci Satuan', 'Cuci Setrika'
   String _selectedServiceType = 'Reguler'; // 'Reguler', 'Ngebut', 'Kilat' for kiloan, items for satuan
   double _counterValue = 1.0;
+  int? _syncedOrderId;
+
+  void _syncServiceFromCustomerOrder(TakeOrderViewModel viewModel) {
+    final order = viewModel.currentOrder;
+    if (order == null) return;
+    if (_syncedOrderId == order.id) return;
+
+    _syncedOrderId = order.id;
+    final serviceTitle = (order.service?.title ?? '').toLowerCase();
+
+    if (serviceTitle.contains('satuan') || serviceTitle.contains('item')) {
+      _selectedCategory = 'Cuci Satuan';
+      _selectedServiceType = 'Selimut';
+    } else if (serviceTitle.contains('setrika') || serviceTitle.contains('iron')) {
+      _selectedCategory = 'Cuci Setrika';
+      if (serviceTitle.contains('kilat') || serviceTitle.contains('express')) {
+        _selectedServiceType = 'Kilat';
+      } else if (serviceTitle.contains('ngebut') || serviceTitle.contains('fast')) {
+        _selectedServiceType = 'Ngebut';
+      } else {
+        _selectedServiceType = 'Reguler';
+      }
+    } else {
+      _selectedCategory = 'Cuci Lipat';
+      if (serviceTitle.contains('kilat') || serviceTitle.contains('express')) {
+        _selectedServiceType = 'Kilat';
+      } else if (serviceTitle.contains('ngebut') || serviceTitle.contains('fast')) {
+        _selectedServiceType = 'Ngebut';
+      } else {
+        _selectedServiceType = 'Reguler';
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -898,6 +931,8 @@ class _TakeOrderViewState extends State<TakeOrderView> {
 
   // STEP 4: Input Pesanan (Konfirmasi Pesanan)
   Widget _buildStepInputOrder(BuildContext context, TakeOrderViewModel viewModel) {
+    _syncServiceFromCustomerOrder(viewModel);
+
     final categories = ['Cuci Lipat', 'Cuci Satuan', 'Cuci Setrika'];
     final kiloanServiceTypes = ['Reguler', 'Ngebut', 'Kilat'];
     final satuanServiceTypes = [
@@ -915,6 +950,46 @@ class _TakeOrderViewState extends State<TakeOrderView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Banner Informasi Layanan Pilihan Customer
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.sync_rounded, color: Color(0xFF2563EB), size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Pilihan Customer: ${viewModel.currentOrder?.service?.title ?? 'Cuci Lipat - Reguler'}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1E40AF),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          const Text(
+                            'Layanan ter-sinkronisasi dari aplikasi Customer. Silakan timbang berat (Kg) / potong (Pcs) riil lalu tekan Tambah.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF3B82F6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
